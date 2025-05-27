@@ -5,33 +5,66 @@ import express from "express";
 const app = express();
 const server = http.createServer(app);
 
-const io = new Server(server, {
-    cors: {
-        origin: ["http://localhost:5173"],
-    },
-});
+let io;
 
-export function getReceiverSocketId(userId) {
-    return userSocketMap[userId];
-}
-
-// used to store online users
-const userSocketMap = {}; // {userId: socketId}
-
-io.on("connection", (socket) => {
-    console.log("A user connected", socket.id);
-
-    const userId = socket.handshake.query.userId;
-    if (userId) userSocketMap[userId] = socket.id;
-
-    // io.emit() is used to send events to all the connected clients
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
-    socket.on("disconnect", () => {
-        console.log("A user disconnected", socket.id);
-        delete userSocketMap[userId];
-        io.emit("getOnlineUsers", Object.keys(userSocketMap));
+export const initSocket = (server) => {
+    io = new Server(server, {
+        cors: {
+            origin: process.env.NODE_ENV === "development" ? "http://localhost:5173" : "/",
+            credentials: true,
+        },
     });
-});
+
+    io.on("connection", (socket) => {
+        console.log("User connected:", socket.id);
+
+        // 用户加入自己的房间
+        const userId = socket.handshake.query.userId;
+        if (userId) {
+            socket.join(userId);
+        }
+
+        // 获取在线用户
+        const onlineUsers = [];
+        for (const [_, socket] of io.sockets.sockets) {
+            const userId = socket.handshake.query.userId;
+            if (userId) {
+                onlineUsers.push(userId);
+            }
+        }
+        io.emit("getOnlineUsers", onlineUsers);
+
+        // 断开连接
+        socket.on("disconnect", () => {
+            console.log("User disconnected:", socket.id);
+            const onlineUsers = [];
+            for (const [_, socket] of io.sockets.sockets) {
+                const userId = socket.handshake.query.userId;
+                if (userId) {
+                    onlineUsers.push(userId);
+                }
+            }
+            io.emit("getOnlineUsers", onlineUsers);
+        });
+    });
+
+    return io;
+};
+
+export const getIO = () => {
+    if (!io) {
+        throw new Error("Socket.io not initialized!");
+    }
+    return io;
+};
+
+export const getReceiverSocketId = (receiverId) => {
+    for (const [_, socket] of io.sockets.sockets) {
+        if (socket.handshake.query.userId === receiverId) {
+            return socket.id;
+        }
+    }
+    return null;
+};
 
 export { io, app, server };

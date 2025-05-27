@@ -9,8 +9,24 @@ export default {
   plugins: [daisyui],
   daisyui: {
     themes: [
-      "light",
-      "dark",
+      {
+        light: {
+          ...require("daisyui/src/theming/themes")["light"],
+          "primary": "#3b82f6",
+          "secondary": "#f000b8",
+          "accent": "#37cdbe",
+          "neutral": "#3d4451",
+          "base-100": "#ffffff",
+        },
+        dark: {
+          ...require("daisyui/src/theming/themes")["dark"],
+          "primary": "#3b82f6",
+          "secondary": "#f000b8",
+          "accent": "#37cdbe",
+          "neutral": "#2a2e37",
+          "base-100": "#1f2937",
+        },
+      },
       "cupcake",
       "bumblebee",
       "emerald",

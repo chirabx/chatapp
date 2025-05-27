@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
+import { useFriendStore } from "./useFriendStore.js";
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
 
@@ -50,6 +51,7 @@ export const useAuthStore = create((set, get) => ({
             toast.success("Logged in successfully");
 
             get().connectSocket();
+            useFriendStore.getState().fetchFriendRequests();
         } catch (error) {
             toast.error(error.response.data.message);
         } finally {
@@ -90,13 +92,40 @@ export const useAuthStore = create((set, get) => ({
             query: {
                 userId: authUser._id,
             },
+            withCredentials: true,
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000
         });
-        socket.connect();
+
+        socket.removeAllListeners();
 
         set({ socket: socket });
 
         socket.on("getOnlineUsers", (userIds) => {
             set({ onlineUsers: userIds });
+        });
+
+        socket.on("connect", () => {
+            console.log("Socket connected");
+            socket.emit("join", { userId: authUser._id });
+        });
+
+        socket.on("friendRemoved", (data) => {
+            useFriendStore.getState().handleFriendRemoved(data.userId);
+        });
+
+        socket.on("newFriendRequest", (request) => {
+            console.log("收到新的好友请求:", request);
+            useFriendStore.getState().handleNewFriendRequest(request);
+        });
+
+        socket.on("disconnect", () => {
+            console.log("Socket disconnected");
+        });
+
+        socket.on("connect_error", (error) => {
+            console.error("Socket connection error:", error);
         });
     },
     disconnectSocket: () => {
