@@ -6,6 +6,10 @@ export const sendFriendRequest = async (req, res) => {
         const { email } = req.body;
         const senderId = req.user._id;
 
+        if (!senderId) {
+            return res.status(401).json({ message: "未授权" });
+        }
+
         // 查找接收者
         const receiver = await User.findOne({ email });
         if (!receiver) {
@@ -56,12 +60,13 @@ export const sendFriendRequest = async (req, res) => {
             friendRequest = await rejectedRequest.save();
         } else {
             // 创建新的好友请求
-            friendRequest = await FriendRequest.create({
+            friendRequest = new FriendRequest({
                 sender: senderId,
                 receiver: receiver._id,
                 status: "sending",
                 read: false
             });
+            await friendRequest.save();
         }
 
         // 通过socket.io通知接收者
