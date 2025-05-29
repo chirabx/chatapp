@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^1.7.7",
     "chat-app": "file:..",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.459.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

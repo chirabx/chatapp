@@ -48,10 +48,13 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.post("/auth/login", data);
             set({ authUser: res.data });
-            toast.success("Logged in successfully");
+            toast.success("登录成功");
 
             get().connectSocket();
             useFriendStore.getState().fetchFriendRequests();
+
+            // 登录成功后跳转到聊天页面
+            window.location.href = "/";
         } catch (error) {
             toast.error(error.response.data.message);
         } finally {

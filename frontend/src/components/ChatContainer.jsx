@@ -6,6 +6,7 @@ import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
+import ImagePreview from "./ImagePreview";
 
 const ChatContainer = () => {
     const {
@@ -52,9 +53,8 @@ const ChatContainer = () => {
                     <div
                         key={message._id}
                         className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-                        ref={messageEndRef}
                     >
-                        <div className=" chat-image avatar">
+                        <div className="chat-image avatar">
                             <div className="size-10 rounded-full border">
                                 <img
                                     src={
@@ -73,9 +73,9 @@ const ChatContainer = () => {
                         </div>
                         <div className="chat-bubble flex flex-col">
                             {message.image && (
-                                <img
+                                <ImagePreview
                                     src={message.image}
-                                    alt="Attachment"
+                                    alt="消息图片"
                                     className="sm:max-w-[200px] rounded-md mb-2"
                                 />
                             )}
@@ -83,10 +83,12 @@ const ChatContainer = () => {
                         </div>
                     </div>
                 ))}
+                <div ref={messageEndRef} />
             </div>
 
             <MessageInput />
         </div>
     );
 };
+
 export default ChatContainer;

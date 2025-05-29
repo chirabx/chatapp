@@ -3,7 +3,7 @@ import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { useFriendStore } from "../store/useFriendStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
-import { Users, UserPlus, UserMinus } from "lucide-react";
+import { Users, UserPlus, UserMinus, Bot } from "lucide-react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -72,6 +72,34 @@ const Sidebar = () => {
                 </div>
 
                 <div className="overflow-y-auto w-full py-3">
+                    {/* 机器人聊天选项 */}
+                    <div
+                        className="group relative w-full p-3 flex items-center gap-3
+                        hover:bg-base-300 transition-colors"
+                    >
+                        <button
+                            onClick={() => setSelectedUser({ _id: 'bot', fullName: 'ChiraBot', profilePic: '/avatar.png' })}
+                            className={`
+                                flex-1 flex items-center gap-3
+                                ${selectedUser?._id === 'bot' ? "bg-base-300 ring-1 ring-base-300" : ""}
+                            `}
+                        >
+                            <div className="relative mx-auto lg:mx-0">
+                                <img
+                                    src="/avatar.png"
+                                    alt="ChiraBot"
+                                    className="size-12 object-cover rounded-full"
+                                />
+                            </div>
+
+                            <div className="hidden lg:block text-left min-w-0">
+                                <div className="font-medium truncate">ChiraBot</div>
+                                <div className="text-sm text-zinc-400">AI 助手</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* 好友列表 */}
                     {filteredFriends.map((friend) => (
                         <div
                             key={friend._id}
@@ -83,7 +111,7 @@ const Sidebar = () => {
                                 className={`
                                     flex-1 flex items-center gap-3
                                     ${selectedUser?._id === friend._id ? "bg-base-300 ring-1 ring-base-300" : ""}
-                                `}
+            `}
                             >
                                 <div className="relative mx-auto lg:mx-0">
                                     <img
@@ -94,7 +122,7 @@ const Sidebar = () => {
                                     {onlineUsers.includes(friend._id) && (
                                         <span
                                             className="absolute bottom-0 right-0 size-3 bg-green-500 
-                                            rounded-full ring-2 ring-zinc-900"
+                  rounded-full ring-2 ring-zinc-900"
                                         />
                                     )}
                                 </div>
