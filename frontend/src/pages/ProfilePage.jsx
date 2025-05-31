@@ -27,18 +27,17 @@ const ProfilePage = () => {
                 <div className="max-w-2xl mx-auto p-4 py-8">
                     <div className="bg-base-300 rounded-xl p-6 space-y-8">
                         <div className="text-center">
-                            <h1 className="text-2xl font-semibold ">Profile</h1>
-                            <p className="mt-2">Your profile information</p>
+                            <h1 className="text-2xl font-semibold">个人资料</h1>
+                            <p className="mt-2">您的个人信息</p>
                         </div>
 
-                        {/* avatar upload section */}
-
+                        {/* 头像上传部分 */}
                         <div className="flex flex-col items-center gap-4">
                             <div className="relative">
                                 <img
                                     src={selectedImg || authUser.profilePic || "/avatar.png"}
-                                    alt="Profile"
-                                    className="size-32 rounded-full object-cover border-4 "
+                                    alt="头像"
+                                    className="size-32 rounded-full object-cover border-4"
                                 />
                                 <label
                                     htmlFor="avatar-upload"
@@ -62,7 +61,7 @@ const ProfilePage = () => {
                                 </label>
                             </div>
                             <p className="text-sm text-zinc-400">
-                                {isUpdatingProfile ? "Uploading..." : "Click the camera icon to update your photo"}
+                                {isUpdatingProfile ? "上传中..." : "点击相机图标更新您的头像"}
                             </p>
                         </div>
 
@@ -70,7 +69,7 @@ const ProfilePage = () => {
                             <div className="space-y-1.5">
                                 <div className="text-sm text-zinc-400 flex items-center gap-2">
                                     <User className="w-4 h-4" />
-                                    Full Name
+                                    姓名
                                 </div>
                                 <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.fullName}</p>
                             </div>
@@ -78,22 +77,22 @@ const ProfilePage = () => {
                             <div className="space-y-1.5">
                                 <div className="text-sm text-zinc-400 flex items-center gap-2">
                                     <Mail className="w-4 h-4" />
-                                    Email Address
+                                    邮箱地址
                                 </div>
                                 <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.email}</p>
                             </div>
                         </div>
 
                         <div className="mt-6 bg-base-300 rounded-xl p-6">
-                            <h2 className="text-lg font-medium  mb-4">Account Information</h2>
+                            <h2 className="text-lg font-medium mb-4">账号信息</h2>
                             <div className="space-y-3 text-sm">
                                 <div className="flex items-center justify-between py-2 border-b border-zinc-700">
-                                    <span>Member Since</span>
+                                    <span>注册时间</span>
                                     <span>{authUser.createdAt?.split("T")[0]}</span>
                                 </div>
                                 <div className="flex items-center justify-between py-2">
-                                    <span>Account Status</span>
-                                    <span className="text-green-500">Active</span>
+                                    <span>账号状态</span>
+                                    <span className="text-green-500">正常</span>
                                 </div>
                             </div>
                         </div>

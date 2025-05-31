@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useFriendStore } from "../store/useFriendStore";
-import { LogOut, MessageSquare, Settings, User, Bell } from "lucide-react";
+import { LogOut, MessageSquare, Settings, User, Bell, Gamepad2, Home } from "lucide-react";
 import FriendRequestIcon from "./FriendRequestIcon";
 
 const Navbar = () => {
@@ -22,22 +22,42 @@ const Navbar = () => {
                             </div>
                             <h1 className="text-lg font-bold">Chatty</h1>
                         </Link>
+                        {authUser && (
+                            <Link
+                                to="/"
+                                className="btn btn-sm btn-ghost gap-2 transition-colors"
+                            >
+                                <Home className="w-4 h-4" />
+                                <span className="hidden sm:inline">首页</span>
+                            </Link>
+                        )}
                     </div>
 
-                    <div className="flex items-center space-x-4">
-                        <FriendRequestIcon />
-                        <Link
-                            to="/settings"
-                            className="btn btn-sm gap-2 transition-colors"
-                        >
-                            <Settings className="w-4 h-4" />
-                            <span className="hidden sm:inline">设置</span>
-                        </Link>
-
+                    <div className="flex items-center gap-2">
+                        {authUser && <FriendRequestIcon />}
                         {authUser && (
                             <>
-                                <Link to="/profile" className="btn btn-sm gap-2">
-                                    <User className="size-5" />
+                                <Link
+                                    to="/ai-games"
+                                    className="btn btn-sm btn-ghost gap-2 transition-colors"
+                                >
+                                    <Gamepad2 className="w-4 h-4" />
+                                    <span className="hidden sm:inline">AI 趣味游戏</span>
+                                </Link>
+
+                                <Link
+                                    to="/settings"
+                                    className="btn btn-sm btn-ghost gap-2 transition-colors"
+                                >
+                                    <Settings className="w-4 h-4" />
+                                    <span className="hidden sm:inline">设置</span>
+                                </Link>
+
+                                <Link
+                                    to="/profile"
+                                    className="btn btn-sm btn-ghost gap-2"
+                                >
+                                    <User className="w-4 h-4" />
                                     <span className="hidden sm:inline">个人资料</span>
                                 </Link>
 
@@ -45,7 +65,7 @@ const Navbar = () => {
                                     onClick={logout}
                                     className="btn btn-sm btn-ghost gap-2"
                                 >
-                                    <LogOut className="size-5" />
+                                    <LogOut className="w-4 h-4" />
                                     <span className="hidden sm:inline">退出</span>
                                 </button>
                             </>

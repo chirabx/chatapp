@@ -50,13 +50,15 @@ export const useAuthStore = create((set, get) => ({
             set({ authUser: res.data });
             toast.success("登录成功");
 
-            get().connectSocket();
-            useFriendStore.getState().fetchFriendRequests();
+            await Promise.all([
+                get().connectSocket(),
+                useFriendStore.getState().fetchFriendRequests()
+            ]);
 
-            // 登录成功后跳转到聊天页面
-            window.location.href = "/";
+            return true;
         } catch (error) {
             toast.error(error.response.data.message);
+            return false;
         } finally {
             set({ isLoggingIn: false });
         }
@@ -89,46 +91,61 @@ export const useAuthStore = create((set, get) => ({
 
     connectSocket: () => {
         const { authUser } = get();
-        if (!authUser || get().socket?.connected) return;
+        if (!authUser || get().socket?.connected) return Promise.resolve();
 
-        const socket = io(BASE_URL, {
-            query: {
-                userId: authUser._id,
-            },
-            withCredentials: true,
-            reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000
-        });
+        return new Promise((resolve) => {
+            const socket = io(BASE_URL, {
+                query: {
+                    userId: authUser._id,
+                },
+                withCredentials: true,
+                reconnection: true,
+                reconnectionAttempts: 3,
+                reconnectionDelay: 500,
+                timeout: 5000,
+                transports: ['websocket']
+            });
 
-        socket.removeAllListeners();
+            socket.removeAllListeners();
 
-        set({ socket: socket });
+            socket.on("connect", () => {
+                console.log("Socket connected");
+                socket.emit("join", { userId: authUser._id });
+                set({ socket: socket });
+                resolve();
+            });
 
-        socket.on("getOnlineUsers", (userIds) => {
-            set({ onlineUsers: userIds });
-        });
+            socket.on("connect_error", (error) => {
+                console.error("Socket connection error:", error);
+                toast.error("连接服务器失败，正在重试...");
+                resolve();
+            });
 
-        socket.on("connect", () => {
-            console.log("Socket connected");
-            socket.emit("join", { userId: authUser._id });
-        });
+            socket.on("getOnlineUsers", (userIds) => {
+                set({ onlineUsers: userIds });
+            });
 
-        socket.on("friendRemoved", (data) => {
-            useFriendStore.getState().handleFriendRemoved(data.userId);
-        });
+            socket.on("friendRemoved", (data) => {
+                useFriendStore.getState().handleFriendRemoved(data.userId);
+            });
 
-        socket.on("newFriendRequest", (request) => {
-            console.log("收到新的好友请求:", request);
-            useFriendStore.getState().handleNewFriendRequest(request);
-        });
+            socket.on("newFriendRequest", (request) => {
+                console.log("收到新的好友请求:", request);
+                useFriendStore.getState().handleNewFriendRequest(request);
+            });
 
-        socket.on("disconnect", () => {
-            console.log("Socket disconnected");
-        });
+            socket.on("disconnect", () => {
+                console.log("Socket disconnected");
+            });
 
-        socket.on("connect_error", (error) => {
-            console.error("Socket connection error:", error);
+            socket.on("reconnect_attempt", (attemptNumber) => {
+                console.log(`尝试重连 (${attemptNumber}/3)`);
+            });
+
+            socket.on("reconnect_failed", () => {
+                console.error("重连失败");
+                toast.error("无法连接到服务器，请刷新页面重试");
+            });
         });
     },
     disconnectSocket: () => {

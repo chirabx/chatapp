@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import friendRoutes from "./routes/friend.routes.js";
 import botRoutes from "./routes/bot.js";
+import gamesRoutes from "./routes/games.js";
 import { initSocket } from "./lib/socket.js";
 
 dotenv.config();
@@ -38,6 +39,7 @@ app.use("/auth", authRoutes);
 app.use("/messages", messageRoutes);
 app.use("/friends", friendRoutes);
 app.use("/bot", botRoutes);
+app.use("/api/games", gamesRoutes);
 
 // 错误处理中间件
 app.use((err, req, res, next) => {

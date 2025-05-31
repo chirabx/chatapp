@@ -8,6 +8,7 @@ import ProfilePage from "./pages/ProfilePage";
 import AddFriend from "./pages/AddFriend";
 import FriendRequests from "./pages/FriendRequests";
 import BotChat from "./components/BotChat";
+import AIGamesPage from "./pages/AIGamesPage";
 
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
@@ -54,6 +55,7 @@ const App = () => {
         <Route path="/add-friend" element={authUser ? <AddFriend /> : <Navigate to="/login" />} />
         <Route path="/friend-requests" element={authUser ? <FriendRequests /> : <Navigate to="/login" />} />
         <Route path="/bot" element={authUser ? <BotChat /> : <Navigate to="/login" />} />
+        <Route path="/ai-games" element={authUser ? <AIGamesPage /> : <Navigate to="/login" />} />
       </Routes>
 
       <Toaster />

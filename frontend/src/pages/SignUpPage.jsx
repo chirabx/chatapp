@@ -48,15 +48,15 @@ const SignUpPage = () => {
                             >
                                 <MessageSquare className="size-6 text-primary" />
                             </div>
-                            <h1 className="text-2xl font-bold mt-2">Create Account</h1>
-                            <p className="text-base-content/60">Get started with your free account</p>
+                            <h1 className="text-2xl font-bold mt-2">创建账号</h1>
+                            <p className="text-base-content/60">开始您的免费账号之旅</p>
                         </div>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="form-control">
                             <label className="label">
-                                <span className="label-text font-medium">Full Name</span>
+                                <span className="label-text font-medium">姓名</span>
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -65,7 +65,7 @@ const SignUpPage = () => {
                                 <input
                                     type="text"
                                     className={`input input-bordered w-full pl-10`}
-                                    placeholder="John Doe"
+                                    placeholder="张三"
                                     value={formData.fullName}
                                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                 />
@@ -74,7 +74,7 @@ const SignUpPage = () => {
 
                         <div className="form-control">
                             <label className="label">
-                                <span className="label-text font-medium">Email</span>
+                                <span className="label-text font-medium">邮箱</span>
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -92,7 +92,7 @@ const SignUpPage = () => {
 
                         <div className="form-control">
                             <label className="label">
-                                <span className="label-text font-medium">Password</span>
+                                <span className="label-text font-medium">密码</span>
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -123,19 +123,19 @@ const SignUpPage = () => {
                             {isSigningUp ? (
                                 <>
                                     <Loader2 className="size-5 animate-spin" />
-                                    Loading...
+                                    注册中...
                                 </>
                             ) : (
-                                "Create Account"
+                                "创建账号"
                             )}
                         </button>
                     </form>
 
                     <div className="text-center">
                         <p className="text-base-content/60">
-                            Already have an account?{" "}
+                            已有账号？{" "}
                             <Link to="/login" className="link link-primary">
-                                Sign in
+                                登录
                             </Link>
                         </p>
                     </div>
@@ -145,8 +145,8 @@ const SignUpPage = () => {
             {/* right side */}
 
             <AuthImagePattern
-                title="Join our community"
-                subtitle="Connect with friends, share moments, and stay in touch with your loved ones."
+                title="加入我们的社区"
+                subtitle="与朋友联系，分享时刻，与您所爱的人保持联系。"
             />
         </div>
     );

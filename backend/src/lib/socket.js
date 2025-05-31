@@ -13,6 +13,10 @@ export const initSocket = (server) => {
             origin: process.env.NODE_ENV === "development" ? "http://localhost:5173" : "/",
             credentials: true,
         },
+        pingTimeout: 60000,
+        pingInterval: 25000,
+        transports: ['websocket', 'polling'],
+        allowEIO3: true
     });
 
     io.on("connection", (socket) => {
@@ -34,6 +38,11 @@ export const initSocket = (server) => {
         }
         io.emit("getOnlineUsers", onlineUsers);
 
+        // 心跳检测
+        socket.on("ping", () => {
+            socket.emit("pong");
+        });
+
         // 断开连接
         socket.on("disconnect", () => {
             console.log("User disconnected:", socket.id);
@@ -45,6 +54,11 @@ export const initSocket = (server) => {
                 }
             }
             io.emit("getOnlineUsers", onlineUsers);
+        });
+
+        // 错误处理
+        socket.on("error", (error) => {
+            console.error("Socket error:", error);
         });
     });
 
