@@ -4,6 +4,15 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// 获取当前文件的目录路径
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 配置 dotenv 以读取根目录的 .env 文件
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
@@ -11,8 +20,6 @@ import friendRoutes from "./routes/friend.routes.js";
 import botRoutes from "./routes/bot.js";
 import gamesRoutes from "./routes/games.js";
 import { initSocket } from "./lib/socket.js";
-
-dotenv.config();
 
 const app = express();
 const server = createServer(app);
