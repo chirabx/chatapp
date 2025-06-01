@@ -5,15 +5,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
 import path from "path";
-import { fileURLToPath } from "url";
-
-// 获取当前文件的目录路径
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// 配置 dotenv 以读取根目录的 .env 文件
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import friendRoutes from "./routes/friend.routes.js";
@@ -21,6 +12,11 @@ import botRoutes from "./routes/bot.js";
 import gamesRoutes from "./routes/games.js";
 import { initSocket } from "./lib/socket.js";
 
+dotenv.config();
+
+const PORT = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGO_URI;
+const __dirname = path.resolve();
 const app = express();
 const server = createServer(app);
 
@@ -48,6 +44,14 @@ app.use("/friends", friendRoutes);
 app.use("/bot", botRoutes);
 app.use("/api/games", gamesRoutes);
 
+if (process.env.NODE_ENV === "production") {
+    app.use(express.static(path.join(__dirname, "../frontend/dist")));
+    app.get("*", (req, res) => {
+        res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+    });
+}
+
+
 // 错误处理中间件
 app.use((err, req, res, next) => {
     console.error('服务器错误:', err);
@@ -65,11 +69,11 @@ app.use((err, req, res, next) => {
 
 // 连接数据库
 mongoose
-    .connect(process.env.MONGO_URI)
+    .connect(MONGO_URI)
     .then(() => {
         console.log("Connected to MongoDB");
-        server.listen(process.env.PORT, () => {
-            console.log(`Server is running on port ${process.env.PORT}`);
+        server.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
         });
     })
     .catch((err) => {

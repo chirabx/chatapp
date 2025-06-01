@@ -46,8 +46,6 @@
 - Socket.io（WebSocket服务）
 - JWT（身份认证）
 - Cloudinary（图片存储）
-- Deepseek API（AI对话）
-- 图像识别API
 
 ## 项目结构
 
@@ -87,14 +85,8 @@ chatapp/
 git clone [项目地址]
 cd chatapp
 ```
-
-2. 安装所有依赖
-```bash
-npm run install-all
-```
-
-3. 配置环境变量
-在根目录创建 `.env` 文件：
+2. 配置环境变量
+在backend目录下创建 `.env` 文件，并添加以下配置：
 ```
 # 服务器配置
 PORT=5001
@@ -118,8 +110,14 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 ### 开发环境运行
 
-在项目根目录下运行：
+在项目backend目录下运行：
 ```bash
+npm install
+npm run dev
+```
+在项目frontend目录下运行：
+```bash
+npm install
 npm run dev
 ```
 这将同时启动前端和后端开发服务器：
@@ -128,22 +126,17 @@ npm run dev
 
 ### 生产环境部署
 
-1. 安装所有依赖
-```bash
-npm run install-all
-```
-
-2. 构建生产版本
+1. 构建生产版本
 ```bash
 npm run build
 ```
 
-3. 启动生产服务器
+2. 启动生产服务器
 ```bash
 npm run start
 ```
 
-## API 文档
+## API 
 
 ### 认证相关
 - POST `/auth/register` - 用户注册
@@ -172,19 +165,7 @@ npm run start
 - GET `/games/code-example/concepts` - 获取代码示例概念列表
 - POST `/games/code-example/generate` - 生成代码示例
 
-## 开发指南
-
-### 前端开发
-- 使用 `npm run dev` 启动开发服务器
-- 支持热重载
-- 使用 ESLint 和 Prettier 保持代码风格一致
-
-### 后端开发
-- 使用 `npm run dev` 启动开发服务器
-- 支持热重载
-- 遵循 RESTful API 设计规范
-
-## 生产环境注意事项
+## 注意事项
 
 1. 环境变量配置
    - 确保所有必要的环境变量都已正确配置
@@ -195,12 +176,6 @@ npm run start
    - 配置适当的 CORS 策略
    - 设置请求速率限制
    - 启用安全相关的 HTTP 头
-
-3. 性能优化
-   - 启用数据库索引
-   - 配置适当的缓存策略
-   - 使用 PM2 进行进程管理
-   - 配置日志记录
 
 ## 常见问题
 
