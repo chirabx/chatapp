@@ -133,7 +133,7 @@ npm run build
 
 2. 启动生产服务器
 ```bash
-npm run start
+npm start
 ```
 
 ## API 
