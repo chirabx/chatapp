@@ -5,7 +5,22 @@
   "scripts": {
     "build": "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend",
     "start": "cross-env NODE_ENV=production npm run start --prefix backend",
-    "dev": "npm run dev --prefix backend & npm run dev --prefix frontend"
+    "dev": "npm run dev --prefix backend & npm run dev --prefix frontend",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:dev": "pm2 start ecosystem.config.js --env development",
+    "pm2:staging": "pm2 start ecosystem.config.js --env staging",
+    "pm2:stop": "pm2 stop chatapp-backend",
+    "pm2:restart": "pm2 restart chatapp-backend",
+    "pm2:reload": "pm2 reload chatapp-backend",
+    "pm2:delete": "pm2 delete chatapp-backend",
+    "pm2:logs": "pm2 logs chatapp-backend",
+    "pm2:logs:err": "pm2 logs chatapp-backend --err",
+    "pm2:logs:out": "pm2 logs chatapp-backend --out",
+    "pm2:monit": "pm2 monit",
+    "pm2:status": "pm2 status",
+    "pm2:save": "pm2 save",
+    "pm2:resurrect": "pm2 resurrect",
+    "pm2:setup": "mkdir -p logs && pm2 start ecosystem.config.js --env production"
   },
   "keywords": [],
   "author": "chirabx",

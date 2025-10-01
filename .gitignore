@@ -46,8 +46,7 @@ coverage/
 
 # 临时文件
 *.tmp
-*.temp
-.temp/
+*.temp.temp/
 tmp/
 
 # 上传的文件（如果有的话）
@@ -61,3 +60,4 @@ backend/uploads/
 .env.development.local
 .env.test.local
 .env.production.local 
+
