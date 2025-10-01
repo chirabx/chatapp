@@ -79,7 +79,7 @@ export const analyzeImage = async (imageBase64, prompt = '请描述这张图片�
 
         // 构建请求数据
         const requestData = {
-            model: "claude-3-5-haiku-20241022",
+            model: "claude-3-7-sonnet-20250219",
             messages: [
                 {
                     role: "user",
