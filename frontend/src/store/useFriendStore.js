@@ -8,13 +8,31 @@ export const useFriendStore = create((set, get) => ({
     friendRequests: [],
     isLoading: false,
     unreadRequests: 0,
+    lastFetchTime: null,
+    cacheExpiry: 5 * 60 * 1000, // 5分钟缓存
 
-    fetchFriends: async () => {
+    fetchFriends: async (forceRefresh = false) => {
+        const { lastFetchTime, cacheExpiry, friends } = get();
+        const now = Date.now();
+
+        // 如果缓存未过期且不是强制刷新，直接返回
+        if (!forceRefresh && lastFetchTime && (now - lastFetchTime) < cacheExpiry && friends.length > 0) {
+            return friends;
+        }
+
+        set({ isLoading: true });
         try {
             const res = await axiosInstance.get("/friends");
-            set({ friends: res.data });
+            set({
+                friends: res.data,
+                lastFetchTime: now,
+                isLoading: false
+            });
+            return res.data;
         } catch (error) {
+            set({ isLoading: false });
             toast.error(error.response?.data?.message || "获取好友列表失败");
+            throw error;
         }
     },
 

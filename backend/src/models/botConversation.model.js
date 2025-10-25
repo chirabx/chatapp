@@ -24,7 +24,6 @@ const botConversationSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// 创建索引
 botConversationSchema.index({ userId: 1, lastInteraction: -1 });
 botConversationSchema.index({ status: 1, lastInteraction: -1 });
 

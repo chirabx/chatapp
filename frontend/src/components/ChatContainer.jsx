@@ -1,12 +1,13 @@
 import { useChatStore } from "../store/useChatStore";
-import { useEffect, useRef } from "react";
+import { useGroupStore } from "../store/useGroupStore";
+import { useEffect } from "react";
 
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
+import GroupChat from "./GroupChat";
+import MessageList from "./MessageList";
 import { useAuthStore } from "../store/useAuthStore";
-import { formatMessageTime } from "../lib/utils";
-import ImagePreview from "./ImagePreview";
 
 const ChatContainer = () => {
     const {
@@ -16,23 +17,55 @@ const ChatContainer = () => {
         selectedUser,
         subscribeToMessages,
         unsubscribeFromMessages,
+        isSendingMessage,
+        handleChatHistoryCleared,
     } = useChatStore();
-    const { authUser } = useAuthStore();
-    const messageEndRef = useRef(null);
+    const { selectedGroup } = useGroupStore();
+    const { authUser, socket } = useAuthStore();
 
     useEffect(() => {
-        getMessages(selectedUser._id);
-
-        subscribeToMessages();
+        if (selectedUser && !selectedGroup) {
+            getMessages(selectedUser._id);
+            subscribeToMessages();
+        }
 
         return () => unsubscribeFromMessages();
-    }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+    }, [selectedUser, selectedGroup, getMessages, subscribeToMessages, unsubscribeFromMessages]);
 
+    // 监听聊天记录被清空的通知
     useEffect(() => {
-        if (messageEndRef.current && messages) {
-            messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+        if (socket) {
+            socket.on("chatHistoryCleared", handleChatHistoryCleared);
+
+            return () => {
+                socket.off("chatHistoryCleared", handleChatHistoryCleared);
+            };
         }
-    }, [messages]);
+    }, [socket, handleChatHistoryCleared]);
+
+
+    // 如果选择了群组，显示群组聊天
+    if (selectedGroup) {
+        console.log("ChatContainer - 显示群组聊天:", selectedGroup);
+        return <GroupChat />;
+    }
+
+    // 如果没有选择用户，显示空状态
+    if (!selectedUser) {
+        return (
+            <div className="flex-1 flex items-center justify-center bg-base-200 p-4">
+                <div className="text-center max-w-md mx-auto">
+                    <div className="text-4xl sm:text-6xl mb-4">💬</div>
+                    <h3 className="text-lg sm:text-xl font-medium text-base-content/70 mb-2">
+                        选择一个聊天开始对话
+                    </h3>
+                    <p className="text-sm sm:text-base text-base-content/50">
+                        从左侧选择一个好友或群组开始聊天
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     if (isMessagesLoading) {
         return (
@@ -47,45 +80,12 @@ const ChatContainer = () => {
     return (
         <div className="flex-1 flex flex-col overflow-auto">
             <ChatHeader />
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message) => (
-                    <div
-                        key={message._id}
-                        className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-                    >
-                        <div className="chat-image avatar">
-                            <div className="size-10 rounded-full border">
-                                <img
-                                    src={
-                                        message.senderId === authUser._id
-                                            ? authUser.profilePic || "/avatar.png"
-                                            : selectedUser.profilePic || "/avatar.png"
-                                    }
-                                    alt="profile pic"
-                                />
-                            </div>
-                        </div>
-                        <div className="chat-header mb-1">
-                            <time className="text-xs opacity-50 ml-1">
-                                {formatMessageTime(message.createdAt)}
-                            </time>
-                        </div>
-                        <div className="chat-bubble flex flex-col">
-                            {message.image && (
-                                <ImagePreview
-                                    src={message.image}
-                                    alt="消息图片"
-                                    className="sm:max-w-[200px] rounded-md mb-2"
-                                />
-                            )}
-                            {message.text && <p>{message.text}</p>}
-                        </div>
-                    </div>
-                ))}
-                <div ref={messageEndRef} />
-            </div>
-
+            <MessageList
+                messages={messages}
+                isGroupChat={false}
+                otherUser={selectedUser}
+                isLoading={isMessagesLoading}
+            />
             <MessageInput />
         </div>
     );

@@ -134,6 +134,35 @@ export const useAuthStore = create((set, get) => ({
                 useFriendStore.getState().handleNewFriendRequest(request);
             });
 
+            // 群组相关事件
+            socket.on("groupCreated", (group) => {
+                useGroupStore.getState().handleGroupUpdated(group);
+            });
+
+            socket.on("groupUpdated", (group) => {
+                useGroupStore.getState().handleGroupUpdated(group);
+            });
+
+            socket.on("groupMemberAdded", (data) => {
+                useGroupStore.getState().handleGroupMemberAdded(data);
+            });
+
+            socket.on("groupMemberRemoved", (data) => {
+                useGroupStore.getState().handleGroupMemberRemoved(data);
+            });
+
+            socket.on("groupMemberLeft", (data) => {
+                useGroupStore.getState().handleGroupMemberLeft(data);
+            });
+
+            socket.on("groupDeleted", (data) => {
+                useGroupStore.getState().handleGroupDeleted(data);
+            });
+
+            socket.on("removedFromGroup", (data) => {
+                useGroupStore.getState().handleRemovedFromGroup(data);
+            });
+
             socket.on("disconnect", () => {
                 console.log("Socket disconnected");
             });

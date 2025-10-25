@@ -68,3 +68,36 @@ export const sendMessage = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+// 批量删除私聊消息
+export const clearChatHistory = async (req, res) => {
+    try {
+        const { userId: otherUserId } = req.params;
+        const myId = req.user._id;
+
+        // 删除双方之间的所有消息
+        const result = await Message.deleteMany({
+            $or: [
+                { senderId: myId, receiverId: otherUserId },
+                { senderId: otherUserId, receiverId: myId },
+            ],
+        });
+
+        // 通知对方聊天记录已清空
+        const receiverSocketId = getReceiverSocketId(otherUserId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("chatHistoryCleared", {
+                clearedBy: myId,
+                message: "聊天记录已清空"
+            });
+        }
+
+        res.status(200).json({
+            message: "聊天记录已清空",
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        console.error("清空聊天记录失败:", error);
+        res.status(500).json({ message: "清空聊天记录失败" });
+    }
+};

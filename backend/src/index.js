@@ -10,6 +10,8 @@ import messageRoutes from "./routes/message.route.js";
 import friendRoutes from "./routes/friend.routes.js";
 import botRoutes from "./routes/bot.js";
 import gamesRoutes from "./routes/games.js";
+import groupRoutes from "./routes/group.route.js";
+import groupMessageRoutes from "./routes/groupMessage.route.js";
 import { initSocket } from "./lib/socket.js";
 
 dotenv.config();
@@ -43,6 +45,8 @@ app.use("/messages", messageRoutes);
 app.use("/friends", friendRoutes);
 app.use("/bot", botRoutes);
 app.use("/api/games", gamesRoutes);
+app.use("/groups", groupRoutes);
+app.use("/group-messages", groupMessageRoutes);
 
 if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(__dirname, "../frontend/dist")));

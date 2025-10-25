@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 页面过渡动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+}
+
 /* 自定义滚动条样式 */
 .custom-scrollbar::-webkit-scrollbar {
     width: 6px;

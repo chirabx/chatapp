@@ -56,6 +56,17 @@ export const initSocket = (server) => {
             io.emit("getOnlineUsers", onlineUsers);
         });
 
+        // 群组相关事件
+        socket.on("joinGroup", (groupId) => {
+            socket.join(`group_${groupId}`);
+            console.log(`User ${userId} joined group ${groupId}`);
+        });
+
+        socket.on("leaveGroup", (groupId) => {
+            socket.leave(`group_${groupId}`);
+            console.log(`User ${userId} left group ${groupId}`);
+        });
+
         // 错误处理
         socket.on("error", (error) => {
             console.error("Socket error:", error);

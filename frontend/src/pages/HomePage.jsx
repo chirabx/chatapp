@@ -1,11 +1,17 @@
 import { useChatStore } from "../store/useChatStore";
+import { useGroupStore } from "../store/useGroupStore";
 import Sidebar from "../components/Sidebar";
 import ChatContainer from "../components/ChatContainer";
+import GroupChat from "../components/GroupChat";
 import NoChatSelected from "../components/NoChatSelected";
 import BotChat from "../components/BotChat";
 
 const HomePage = () => {
     const { selectedUser } = useChatStore();
+    const { selectedGroup } = useGroupStore();
+
+    console.log("HomePage - selectedUser:", selectedUser);
+    console.log("HomePage - selectedGroup:", selectedGroup);
 
     return (
         <div className="h-screen bg-base-200">
@@ -13,9 +19,11 @@ const HomePage = () => {
                 <div className="bg-base-100 rounded-lg shadow-cl w-full max-w-6xl h-[calc(100vh-8rem)]">
                     <div className="flex h-full rounded-lg overflow-hidden">
                         <Sidebar />
-                        {!selectedUser ? (
+                        {!selectedUser && !selectedGroup ? (
                             <NoChatSelected />
-                        ) : selectedUser._id === 'bot' ? (
+                        ) : selectedGroup ? (
+                            <GroupChat />
+                        ) : selectedUser?._id === 'bot' ? (
                             <BotChat />
                         ) : (
                             <ChatContainer />
