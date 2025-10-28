@@ -274,11 +274,9 @@ export const useGroupStore = create((set, get) => ({
             const res = await axiosInstance.post(`/group-messages/${groupId}/send`, messageData);
             const newMessage = res.data;
 
-            // 移除临时消息，添加真实消息
+            // 等待socket事件自动替换临时消息，这里只需要标记发送完成
+            // Socket事件会通过 handleNewGroupMessage 处理，将临时消息替换为真实消息
             set((state) => ({
-                groupMessages: state.groupMessages
-                    .filter(msg => msg.tempId !== tempMessage.tempId)
-                    .concat([newMessage]),
                 pendingGroupMessages: state.pendingGroupMessages.filter(id => id !== tempMessage.tempId),
                 isSendingMessage: false
             }));
@@ -328,23 +326,37 @@ export const useGroupStore = create((set, get) => ({
                 return state;
             }
 
-            // 检查是否已经存在该消息（通过_id或tempId检查）
+            // 检查是否已经存在该消息（通过_id检查）
             const isDuplicate = state.groupMessages.some(msg =>
-                msg._id === message._id ||
-                (msg.tempId && msg.tempId === message.tempId)
+                msg._id === message._id
             );
 
             if (isDuplicate) {
                 return state;
             }
 
-            // 检查是否是当前用户发送的消息，如果是则不通过Socket添加
-            // 注意：这里需要从外部传入authUser，避免循环导入
-            // const { authUser } = useAuthStore.getState();
-            // if (message.senderId._id === authUser._id) {
-            //     return state;
-            // }
+            // 检查是否有对应的临时消息（通过senderId和内容匹配）
+            // 如果消息是来自当前用户的待发送消息，则替换临时消息
+            const tempMessageIndex = state.groupMessages.findIndex(msg =>
+                msg.isPending &&
+                msg.tempId &&
+                msg.senderId?._id === message.senderId?._id &&
+                msg.text === message.text &&
+                // 图片消息：临时消息有image字段，真实消息也应该有image字段
+                // 文本消息：都没有image字段
+                ((!msg.image && !message.image) || (msg.image && message.image))
+            );
 
+            if (tempMessageIndex !== -1) {
+                // 替换临时消息为真实消息
+                const newMessages = [...state.groupMessages];
+                newMessages[tempMessageIndex] = message;
+                return {
+                    groupMessages: newMessages
+                };
+            }
+
+            // 如果没有对应的临时消息，直接添加
             return {
                 groupMessages: [...state.groupMessages, message]
             };
