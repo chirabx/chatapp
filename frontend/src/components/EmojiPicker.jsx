@@ -59,12 +59,12 @@ const EmojiPickerButton = ({ onEmojiSelect, className = '', categories }) => {
 
                         {/* Emoji列表 */}
                         <div className="p-3 h-[340px] overflow-y-auto scrollbar-thin scrollbar-thumb-base-300 scrollbar-track-base-100">
-                            <div className="grid grid-cols-8 gap-2">
+                            <div className="grid grid-cols-8 gap-1">
                                 {EMOJI_CATEGORIES[activeCategory].emojis.map((emoji, index) => (
                                     <button
                                         key={index}
                                         type="button"
-                                        className="text-2xl hover:bg-base-200 rounded-lg p-2 transition-colors hover:scale-110"
+                                        className="w-9 h-9 flex items-center justify-center text-2xl leading-none rounded-md hover:bg-base-200 transition-colors select-none"
                                         onClick={() => handleEmojiClick(emoji.char || emoji)}
                                         title={(emoji.label || emoji).toString()}
                                     >
