@@ -14,21 +14,19 @@ const HomePage = () => {
     console.log("HomePage - selectedGroup:", selectedGroup);
 
     return (
-        <div className="h-screen bg-base-200">
-            <div className="flex items-center justify-center pt-20 px-4">
-                <div className="bg-base-100 rounded-lg shadow-cl w-full max-w-6xl h-[calc(100vh-8rem)]">
-                    <div className="flex h-full rounded-lg overflow-hidden">
-                        <Sidebar />
-                        {!selectedUser && !selectedGroup ? (
-                            <NoChatSelected />
-                        ) : selectedGroup ? (
-                            <GroupChat />
-                        ) : selectedUser?._id === 'bot' ? (
-                            <BotChat />
-                        ) : (
-                            <ChatContainer />
-                        )}
-                    </div>
+        <div className="flex items-center justify-center pt-20 px-4 min-h-screen">
+            <div className="bg-base-100/70 backdrop-blur-sm rounded-lg shadow-xl w-full max-w-6xl h-[calc(100vh-8rem)] border border-base-300/50">
+                <div className="flex h-full rounded-lg overflow-hidden">
+                    <Sidebar />
+                    {!selectedUser && !selectedGroup ? (
+                        <NoChatSelected />
+                    ) : selectedGroup ? (
+                        <GroupChat />
+                    ) : selectedUser?._id === 'bot' ? (
+                        <BotChat />
+                    ) : (
+                        <ChatContainer />
+                    )}
                 </div>
             </div>
         </div>

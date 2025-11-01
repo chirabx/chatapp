@@ -185,7 +185,7 @@ export const getFriends = async (req, res) => {
 
         // 获取好友详细信息
         const friends = await User.find({ _id: { $in: friendIds } })
-            .select("fullName email profilePic");
+            .select("fullName email profilePic tagline createdAt");
 
         res.status(200).json(friends);
     } catch (error) {

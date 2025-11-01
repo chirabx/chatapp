@@ -37,6 +37,10 @@ export const signup = async (req, res) => {
                 fullName: newUser.fullName,
                 email: newUser.email,
                 profilePic: newUser.profilePic,
+                tagline: newUser.tagline || "",
+                backgroundId: newUser.backgroundId || "",
+                overlayOpacity: newUser.overlayOpacity ?? 30,
+                createdAt: newUser.createdAt,
             });
         } else {
             res.status(400).json({ message: "Invalid user data" })
@@ -65,6 +69,10 @@ export const login = async (req, res) => {
             fullName: user.fullName,
             email: user.email,
             profilePic: user.profilePic,
+            tagline: user.tagline || "",
+            backgroundId: user.backgroundId || "",
+            overlayOpacity: user.overlayOpacity ?? 30,
+            createdAt: user.createdAt,
         });
     } catch (error) {
         console.log("Error in login controller", error.message)
@@ -83,23 +91,96 @@ export const logout = (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const { profilePic } = req.body;
+        const { profilePic, fullName, tagline, backgroundId, overlayOpacity } = req.body;
         const userId = req.user._id;
 
-        if (!profilePic) {
-            return res.status(400).json({ message: "Profile picture is required" });
+        const update = {};
+
+        if (typeof fullName === "string") {
+            const name = fullName.trim();
+            if (!name) {
+                return res.status(400).json({ message: "姓名不能为空" });
+            }
+            update.fullName = name;
         }
 
-        const uploadResponse = await cloudinary.uploader.upload(profilePic);
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            { profilePic: uploadResponse.secure_url },
-            { new: true }
-        );
+        if (typeof tagline === "string") {
+            update.tagline = tagline.trim();
+        }
+
+        // 允许 backgroundId 为空字符串来清除背景
+        if (backgroundId !== undefined) {
+            update.backgroundId = backgroundId ? backgroundId.trim() : "";
+        }
+
+        // 遮罩透明度（0-80）
+        if (overlayOpacity !== undefined) {
+            const opacity = Number(overlayOpacity);
+            if (!isNaN(opacity) && opacity >= 0 && opacity <= 80) {
+                update.overlayOpacity = opacity;
+            }
+        }
+
+        if (profilePic) {
+            const uploadResponse = await cloudinary.uploader.upload(profilePic);
+            update.profilePic = uploadResponse.secure_url;
+        }
+
+        if (Object.keys(update).length === 0) {
+            return res.status(400).json({ message: "未提供任何可更新的字段" });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(userId, update, { new: true });
         res.status(200).json(updatedUser);
     } catch (error) {
         console.log("error in update profile:", error);
         res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user._id;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: "请提供当前密码和新密码" });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: "新密码长度至少为6位" });
+        }
+
+        // 获取用户信息（包含密码）
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "用户不存在" });
+        }
+
+        // 验证当前密码
+        const isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
+        if (!isPasswordCorrect) {
+            return res.status(400).json({ message: "当前密码错误" });
+        }
+
+        // 检查新密码是否与当前密码相同
+        const isSamePassword = await bcrypt.compare(newPassword, user.password);
+        if (isSamePassword) {
+            return res.status(400).json({ message: "新密码不能与当前密码相同" });
+        }
+
+        // 加密新密码
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // 更新密码
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ message: "密码修改成功" });
+    } catch (error) {
+        console.log("error in change password:", error);
+        res.status(500).json({ message: "修改密码失败" });
     }
 };
 

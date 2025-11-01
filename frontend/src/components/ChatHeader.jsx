@@ -3,11 +3,13 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import { useState } from "react";
 import ClearChatModal from "./ClearChatModal";
+import FriendProfileModal from "./FriendProfileModal";
 
 const ChatHeader = () => {
     const { selectedUser, setSelectedUser, clearChatHistory } = useChatStore();
     const { onlineUsers } = useAuthStore();
     const [showClearModal, setShowClearModal] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false);
     const [isClearing, setIsClearing] = useState(false);
 
     const handleClearChat = async () => {
@@ -29,7 +31,11 @@ const ChatHeader = () => {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     {/* Avatar */}
-                    <div className="avatar flex-shrink-0">
+                    <div
+                        className="avatar flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => setShowProfileModal(true)}
+                        title="查看好友信息"
+                    >
                         <div className="size-8 sm:size-10 rounded-full relative">
                             <img
                                 src={selectedUser.profilePic || "/avatar.png"}
@@ -76,6 +82,14 @@ const ChatHeader = () => {
                 onConfirm={handleClearChat}
                 chatType="私聊"
                 isLoading={isClearing}
+            />
+
+            {/* Friend Profile Modal */}
+            <FriendProfileModal
+                isOpen={showProfileModal}
+                onClose={() => setShowProfileModal(false)}
+                friend={selectedUser}
+                isOnline={onlineUsers.includes(selectedUser?._id)}
             />
         </div>
     );

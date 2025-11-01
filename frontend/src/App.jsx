@@ -1,4 +1,5 @@
 import Navbar from "./components/Navbar";
+import BackgroundLayout from "./components/BackgroundLayout";
 
 import HomePage from "./pages/HomePage";
 import SignUpPage from "./pages/SignUpPage";
@@ -48,16 +49,67 @@ const App = () => {
       <Navbar />
 
       <Routes>
-        <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
+        {/* 登录和注册页面不使用背景 */}
         <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
         <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/login" />} />
-        <Route path="/settings" element={authUser ? <SettingsPage /> : <Navigate to="/login" />} />
-        <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
-        <Route path="/add-friend" element={authUser ? <AddFriend /> : <Navigate to="/login" />} />
-        <Route path="/friend-requests" element={authUser ? <FriendRequests /> : <Navigate to="/login" />} />
-        <Route path="/bot" element={authUser ? <BotChat /> : <Navigate to="/login" />} />
-        <Route path="/ai-games" element={authUser ? <AIGamesPage /> : <Navigate to="/login" />} />
-        <Route path="/groups/:groupId/settings" element={authUser ? <GroupSettings /> : <Navigate to="/login" />} />
+
+        {/* 其他页面使用背景布局 */}
+        <Route path="/" element={
+          authUser ? (
+            <BackgroundLayout>
+              <HomePage />
+            </BackgroundLayout>
+          ) : <Navigate to="/login" />
+        } />
+        <Route path="/settings" element={
+          authUser ? (
+            <BackgroundLayout>
+              <SettingsPage />
+            </BackgroundLayout>
+          ) : <Navigate to="/login" />
+        } />
+        <Route path="/profile" element={
+          authUser ? (
+            <BackgroundLayout>
+              <ProfilePage />
+            </BackgroundLayout>
+          ) : <Navigate to="/login" />
+        } />
+        <Route path="/add-friend" element={
+          authUser ? (
+            <BackgroundLayout>
+              <AddFriend />
+            </BackgroundLayout>
+          ) : <Navigate to="/login" />
+        } />
+        <Route path="/friend-requests" element={
+          authUser ? (
+            <BackgroundLayout>
+              <FriendRequests />
+            </BackgroundLayout>
+          ) : <Navigate to="/login" />
+        } />
+        <Route path="/bot" element={
+          authUser ? (
+            <BackgroundLayout>
+              <BotChat />
+            </BackgroundLayout>
+          ) : <Navigate to="/login" />
+        } />
+        <Route path="/ai-games" element={
+          authUser ? (
+            <BackgroundLayout>
+              <AIGamesPage />
+            </BackgroundLayout>
+          ) : <Navigate to="/login" />
+        } />
+        <Route path="/groups/:groupId/settings" element={
+          authUser ? (
+            <BackgroundLayout>
+              <GroupSettings />
+            </BackgroundLayout>
+          ) : <Navigate to="/login" />
+        } />
       </Routes>
 
       <Toaster />

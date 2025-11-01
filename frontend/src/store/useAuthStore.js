@@ -3,6 +3,7 @@ import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 import { useFriendStore } from "./useFriendStore.js";
+import { useBackgroundStore } from "./useBackgroundStore.js";
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
 
@@ -11,6 +12,7 @@ export const useAuthStore = create((set, get) => ({
     isSigningUp: false,
     isLoggingIn: false,
     isUpdatingProfile: false,
+    isChangingPassword: false,
     isCheckingAuth: true,
     onlineUsers: [],
     socket: null,
@@ -20,6 +22,8 @@ export const useAuthStore = create((set, get) => ({
             const res = await axiosInstance.get("/auth/check");
 
             set({ authUser: res.data });
+            // 初始化背景和遮罩透明度
+            useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity);
             get().connectSocket();
         } catch (error) {
             console.log("Error in checkAuth:", error);
@@ -34,6 +38,8 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.post("/auth/signup", data);
             set({ authUser: res.data });
+            // 初始化背景和遮罩透明度
+            useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity);
             toast.success("Account created successfully");
             get().connectSocket();
         } catch (error) {
@@ -48,6 +54,8 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.post("/auth/login", data);
             set({ authUser: res.data });
+            // 初始化背景和遮罩透明度
+            useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity);
             toast.success("登录成功");
 
             await Promise.all([
@@ -80,12 +88,31 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.put("/auth/update-profile", data);
             set({ authUser: res.data });
+            // 如果更新了背景或遮罩透明度，同步到背景store
+            if (data.backgroundId !== undefined || data.overlayOpacity !== undefined) {
+                useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity);
+            }
             toast.success("Profile updated successfully");
         } catch (error) {
             console.log("error in update profile:", error);
             toast.error(error.response.data.message);
         } finally {
             set({ isUpdatingProfile: false });
+        }
+    },
+
+    changePassword: async (data) => {
+        set({ isChangingPassword: true });
+        try {
+            await axiosInstance.put("/auth/change-password", data);
+            toast.success("密码修改成功");
+            return true;
+        } catch (error) {
+            console.log("error in change password:", error);
+            toast.error(error.response?.data?.message || "密码修改失败");
+            return false;
+        } finally {
+            set({ isChangingPassword: false });
         }
     },
 

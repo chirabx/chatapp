@@ -20,6 +20,21 @@ const userSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        tagline: {
+            type: String,
+            default: "",
+            maxlength: 140,
+        },
+        backgroundId: {
+            type: String,
+            default: "",
+        },
+        overlayOpacity: {
+            type: Number,
+            default: 30, // 默认30%透明度
+            min: 0,
+            max: 80,
+        },
     },
     { timestamps: true }
 );
