@@ -40,6 +40,7 @@ export const signup = async (req, res) => {
                 tagline: newUser.tagline || "",
                 backgroundId: newUser.backgroundId || "",
                 overlayOpacity: newUser.overlayOpacity ?? 30,
+                chatBoxOpacity: newUser.chatBoxOpacity ?? 70,
                 createdAt: newUser.createdAt,
             });
         } else {
@@ -72,6 +73,7 @@ export const login = async (req, res) => {
             tagline: user.tagline || "",
             backgroundId: user.backgroundId || "",
             overlayOpacity: user.overlayOpacity ?? 30,
+            chatBoxOpacity: user.chatBoxOpacity ?? 70,
             createdAt: user.createdAt,
         });
     } catch (error) {
@@ -91,7 +93,7 @@ export const logout = (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const { profilePic, fullName, tagline, backgroundId, overlayOpacity } = req.body;
+        const { profilePic, fullName, tagline, backgroundId, overlayOpacity, chatBoxOpacity } = req.body;
         const userId = req.user._id;
 
         const update = {};
@@ -121,6 +123,14 @@ export const updateProfile = async (req, res) => {
             }
         }
 
+        // 聊天框透明度（40-100）
+        if (chatBoxOpacity !== undefined) {
+            const opacity = Number(chatBoxOpacity);
+            if (!isNaN(opacity) && opacity >= 40 && opacity <= 100) {
+                update.chatBoxOpacity = opacity;
+            }
+        }
+
         if (profilePic) {
             const uploadResponse = await cloudinary.uploader.upload(profilePic);
             update.profilePic = uploadResponse.secure_url;
@@ -131,7 +141,17 @@ export const updateProfile = async (req, res) => {
         }
 
         const updatedUser = await User.findByIdAndUpdate(userId, update, { new: true });
-        res.status(200).json(updatedUser);
+        res.status(200).json({
+            _id: updatedUser._id,
+            fullName: updatedUser.fullName,
+            email: updatedUser.email,
+            profilePic: updatedUser.profilePic,
+            tagline: updatedUser.tagline || "",
+            backgroundId: updatedUser.backgroundId || "",
+            overlayOpacity: updatedUser.overlayOpacity ?? 30,
+            chatBoxOpacity: updatedUser.chatBoxOpacity ?? 70,
+            createdAt: updatedUser.createdAt,
+        });
     } catch (error) {
         console.log("error in update profile:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -186,7 +206,18 @@ export const changePassword = async (req, res) => {
 
 export const checkAuth = (req, res) => {
     try {
-        res.status(200).json(req.user);
+        const user = req.user;
+        res.status(200).json({
+            _id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            profilePic: user.profilePic,
+            tagline: user.tagline || "",
+            backgroundId: user.backgroundId || "",
+            overlayOpacity: user.overlayOpacity ?? 30,
+            chatBoxOpacity: user.chatBoxOpacity ?? 70,
+            createdAt: user.createdAt,
+        });
     }
     catch (error) {
         console.log("Error in checkAuth controller", error.message)

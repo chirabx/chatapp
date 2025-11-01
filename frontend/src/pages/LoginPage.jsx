@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import AuthImagePattern from "../components/AuthImagePattern";
+import MeteorShower from "../components/MeteorShower";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 
 const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -23,16 +24,22 @@ const LoginPage = () => {
     return (
         <div className="h-screen grid lg:grid-cols-2">
             {/* Left Side - Form */}
-            <div className="flex flex-col justify-center items-center p-6 sm:p-12">
-                <div className="w-full max-w-md space-y-8">
+            <div className="relative flex flex-col justify-center items-center p-6 sm:p-12">
+                {/* 流星背景效果 */}
+                <MeteorShower />
+                <div className="relative w-full max-w-md space-y-8 z-10">
                     {/* Logo */}
                     <div className="text-center mb-8">
                         <div className="flex flex-col items-center gap-2 group">
                             <div
                                 className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20
-              transition-colors"
+              transition-colors p-2"
                             >
-                                <MessageSquare className="w-6 h-6 text-primary" />
+                                <img
+                                    src="/logo.png"
+                                    alt="Chatty Logo"
+                                    className="w-full h-full object-contain rounded-lg"
+                                />
                             </div>
                             <h1 className="text-2xl font-bold mt-2">欢迎回来</h1>
                             <p className="text-base-content/60">登录您的账号</p>

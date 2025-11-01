@@ -155,7 +155,7 @@ const GroupChat = () => {
 
     if (!selectedGroup) {
         return (
-            <div className="flex-1 flex items-center justify-center bg-base-200 p-4">
+            <div className="flex-1 flex items-center justify-center p-4">
                 <div className="text-center max-w-md mx-auto">
                     <Users className="size-12 sm:size-16 mx-auto text-base-content/30 mb-4" />
                     <h3 className="text-lg sm:text-xl font-medium text-base-content/70 mb-2">
@@ -170,9 +170,9 @@ const GroupChat = () => {
     }
 
     return (
-        <div className="flex-1 flex flex-col bg-base-100 h-full">
+        <div className="flex-1 flex flex-col h-full">
             {/* 群组头部 */}
-            <div className="border-b border-base-300 p-2 sm:p-4 flex-shrink-0">
+            <div className="p-3 sm:p-4 border-b border-base-300 flex-shrink-0">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                         <LazyImage
@@ -236,7 +236,7 @@ const GroupChat = () => {
                 </div>
 
                 {/* 群成员侧边栏 - 绝对定位，不影响布局 */}
-                <div className={`absolute right-0 top-0 bottom-0 w-64 sm:w-72 bg-base-100 border-l border-base-300 p-2 sm:p-4 transition-all duration-300 ease-in-out transform z-10 ${showMembers
+                <div className={`absolute right-0 top-0 bottom-0 w-64 sm:w-72 bg-base-100/70 backdrop-blur-md border-l border-base-300/50 p-2 sm:p-4 transition-all duration-300 ease-in-out transform z-10 ${showMembers
                     ? 'translate-x-0 opacity-100'
                     : 'translate-x-full opacity-0 pointer-events-none'
                     }`}>

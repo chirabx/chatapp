@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import MessageSkeleton from './skeletons/MessageSkeleton';
-import { MessageSquare } from 'lucide-react';
 
 const MessageList = ({
     messages = [],
@@ -27,14 +26,18 @@ const MessageList = ({
         return (
             <div className={`flex-1 flex items-center justify-center p-4 ${className || ''}`}>
                 <div className="max-w-md text-center space-y-6">
-                    {/* Icon Display */}
+                    {/* Logo Display with bounce animation */}
                     <div className="flex justify-center gap-4 mb-4">
                         <div className="relative">
                             <div
                                 className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center
-                                justify-center animate-bounce"
+                                justify-center animate-bounce overflow-hidden"
                             >
-                                <MessageSquare className="w-8 h-8 text-primary" />
+                                <img
+                                    src="/logo.png"
+                                    alt="Chatty Logo"
+                                    className="w-12 h-12 object-contain"
+                                />
                             </div>
                         </div>
                     </div>

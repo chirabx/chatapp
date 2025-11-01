@@ -21,6 +21,15 @@ const OVERLAY_OPACITY_OPTIONS = [
     { value: 80, label: "80%" },
 ];
 
+// 聊天框透明度选项
+const CHAT_BOX_OPACITY_OPTIONS = [
+    { value: 40, label: "40%" },
+    { value: 55, label: "55%" },
+    { value: 70, label: "70%" },
+    { value: 85, label: "85%" },
+    { value: 100, label: "100%" },
+];
+
 // 优化主题按钮组件
 const ThemeButton = ({ theme, currentTheme, onClick }) => {
     return (
@@ -110,7 +119,9 @@ const SettingsPage = () => {
         setBackground,
         isUpdating,
         overlayOpacity,
-        setOverlayOpacity
+        setOverlayOpacity,
+        chatBoxOpacity,
+        setChatBoxOpacity
     } = useBackgroundStore();
 
     // 获取预览背景
@@ -180,6 +191,13 @@ const SettingsPage = () => {
             setOverlayOpacity(opacity);
         }
     }, [setOverlayOpacity, isUpdating]);
+
+    // 聊天框透明度切换
+    const handleChatBoxOpacityChange = useCallback((opacity) => {
+        if (!isUpdating) {
+            setChatBoxOpacity(opacity);
+        }
+    }, [setChatBoxOpacity, isUpdating]);
 
     return (
         <div className="min-h-screen container mx-auto px-4 pt-20 pb-8 max-w-5xl">
@@ -288,6 +306,38 @@ const SettingsPage = () => {
                     </div>
                 </div>
 
+                {/* 聊天框透明度设置 - 半透明背景卡片 */}
+                <div className="bg-base-100/50 backdrop-blur-md rounded-xl p-6 border border-base-300/50 shadow-lg">
+                    <div className="flex flex-col gap-1 mb-4">
+                        <h2 className="text-lg font-semibold flex items-center gap-2">
+                            <Layers className="w-5 h-5" />
+                            聊天框透明度
+                        </h2>
+                        <p className="text-sm text-base-content/70">调整聊天框的透明度（40%为较透明，100%为完全不透明）</p>
+                    </div>
+
+                    <div className="flex gap-2 flex-wrap">
+                        {CHAT_BOX_OPACITY_OPTIONS.map((option) => (
+                            <button
+                                key={option.value}
+                                className={`
+                                    flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors
+                                    ${chatBoxOpacity === option.value
+                                        ? "bg-primary text-primary-content border-primary"
+                                        : "bg-base-200 hover:bg-base-300 border-base-300"
+                                    }
+                                    ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}
+                                `}
+                                onClick={() => handleChatBoxOpacityChange(option.value)}
+                                disabled={isUpdating}
+                            >
+                                {chatBoxOpacity === option.value && <Check className="w-4 h-4" />}
+                                <span>{option.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Preview Section - 半透明背景卡片 */}
                 <div className="bg-base-100/50 backdrop-blur-md rounded-xl p-6 border border-base-300/50 shadow-lg">
                     <h3 className="text-lg font-semibold mb-3">预览</h3>
@@ -305,62 +355,72 @@ const SettingsPage = () => {
                             ></div>
                             <div className="max-w-lg mx-auto relative z-10">
                                 {/* Mock Chat UI */}
-                                <div className="bg-base-100/50 backdrop-blur-md rounded-xl shadow-sm overflow-hidden border border-base-300/50">
-                                    {/* Chat Header */}
-                                    <div className="px-4 py-3 border-b border-base-300/50 bg-base-100/50 backdrop-blur-sm">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-content font-medium">
-                                                J
-                                            </div>
-                                            <div>
-                                                <h3 className="font-medium text-sm">张三</h3>
-                                                <p className="text-xs text-base-content/70">在线</p>
+                                <div className="relative backdrop-blur-md rounded-xl shadow-sm overflow-hidden border border-base-300/50 transition-all duration-300">
+                                    {/* 背景层 - 应用透明度 */}
+                                    <div
+                                        className="absolute inset-0 bg-base-100 rounded-xl transition-opacity duration-300"
+                                        style={{
+                                            opacity: chatBoxOpacity / 100
+                                        }}
+                                    ></div>
+                                    {/* 内容层 */}
+                                    <div className="relative z-10">
+                                        {/* Chat Header */}
+                                        <div className="px-4 py-3 border-b border-base-300/50 bg-base-100/50 backdrop-blur-sm">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-content font-medium">
+                                                    J
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-medium text-sm">张三</h3>
+                                                    <p className="text-xs text-base-content/70">在线</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* Chat Messages */}
-                                    <div className="p-4 space-y-4 min-h-[200px] max-h-[200px] overflow-y-auto bg-base-100/50 backdrop-blur-sm">
-                                        {PREVIEW_MESSAGES.map((message) => (
-                                            <div
-                                                key={message.id}
-                                                className={`flex ${message.isSent ? "justify-end" : "justify-start"}`}
-                                            >
+                                        {/* Chat Messages */}
+                                        <div className="p-4 space-y-4 min-h-[200px] max-h-[200px] overflow-y-auto bg-base-100/50 backdrop-blur-sm">
+                                            {PREVIEW_MESSAGES.map((message) => (
                                                 <div
-                                                    className={`
+                                                    key={message.id}
+                                                    className={`flex ${message.isSent ? "justify-end" : "justify-start"}`}
+                                                >
+                                                    <div
+                                                        className={`
                                                     max-w-[80%] rounded-xl p-3 shadow-sm backdrop-blur-sm
                                                     ${message.isSent
-                                                            ? "bg-primary/80 text-primary-content"
-                                                            : "bg-base-200/70"}
+                                                                ? "bg-primary/80 text-primary-content"
+                                                                : "bg-base-200/70"}
                                                 `}
-                                                >
-                                                    <p className="text-sm">{message.content}</p>
-                                                    <p
-                                                        className={`
+                                                    >
+                                                        <p className="text-sm">{message.content}</p>
+                                                        <p
+                                                            className={`
                                                         text-[10px] mt-1.5
                                                         ${message.isSent ? "text-primary-content/70" : "text-base-content/70"}
                                                     `}
-                                                    >
-                                                        12:00 PM
-                                                    </p>
+                                                        >
+                                                            12:00 PM
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                            ))}
+                                        </div>
 
-                                    {/* Chat Input */}
-                                    <div className="p-4 border-t border-base-300/50 bg-base-100/50 backdrop-blur-sm">
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                className="input input-bordered flex-1 text-sm h-10 bg-base-100/70 backdrop-blur-sm"
-                                                placeholder="输入一条消息..."
-                                                value="这只是一个预览"
-                                                readOnly
-                                            />
-                                            <button className="btn btn-primary h-10 min-h-0">
-                                                <Send size={18} />
-                                            </button>
+                                        {/* Chat Input */}
+                                        <div className="p-4 border-t border-base-300/50 bg-base-100/50 backdrop-blur-sm">
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    className="input input-bordered flex-1 text-sm h-10 bg-base-100/70 backdrop-blur-sm"
+                                                    placeholder="输入一条消息..."
+                                                    value="这只是一个预览"
+                                                    readOnly
+                                                />
+                                                <button className="btn btn-primary h-10 min-h-0">
+                                                    <Send size={18} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

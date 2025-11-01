@@ -23,7 +23,7 @@ export const useAuthStore = create((set, get) => ({
 
             set({ authUser: res.data });
             // 初始化背景和遮罩透明度
-            useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity);
+            useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity, res.data?.chatBoxOpacity);
             get().connectSocket();
         } catch (error) {
             console.log("Error in checkAuth:", error);
@@ -39,7 +39,7 @@ export const useAuthStore = create((set, get) => ({
             const res = await axiosInstance.post("/auth/signup", data);
             set({ authUser: res.data });
             // 初始化背景和遮罩透明度
-            useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity);
+            useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity, res.data?.chatBoxOpacity);
             toast.success("Account created successfully");
             get().connectSocket();
         } catch (error) {
@@ -55,7 +55,7 @@ export const useAuthStore = create((set, get) => ({
             const res = await axiosInstance.post("/auth/login", data);
             set({ authUser: res.data });
             // 初始化背景和遮罩透明度
-            useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity);
+            useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity, res.data?.chatBoxOpacity);
             toast.success("登录成功");
 
             await Promise.all([
@@ -88,9 +88,9 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.put("/auth/update-profile", data);
             set({ authUser: res.data });
-            // 如果更新了背景或遮罩透明度，同步到背景store
-            if (data.backgroundId !== undefined || data.overlayOpacity !== undefined) {
-                useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity);
+            // 如果更新了背景、遮罩透明度或聊天框透明度，同步到背景store
+            if (data.backgroundId !== undefined || data.overlayOpacity !== undefined || data.chatBoxOpacity !== undefined) {
+                useBackgroundStore.getState().initBackground(res.data?.backgroundId, res.data?.overlayOpacity, res.data?.chatBoxOpacity);
             }
             toast.success("Profile updated successfully");
         } catch (error) {

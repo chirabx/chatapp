@@ -23,11 +23,35 @@ const getStoredOverlayOpacity = () => {
     }
 };
 
+const getStoredChatBoxOpacity = () => {
+    try {
+        const stored = localStorage.getItem("chat-box-opacity");
+        if (stored) {
+            const value = Number(stored);
+            // 有效的选项：40, 55, 70, 85, 100
+            // 如果是有效值，直接返回
+            if ([40, 55, 70, 85, 100].includes(value)) return value;
+            // 否则映射到最接近的选项
+            if (value < 40) return 40;
+            else if (value < 55) return 40;
+            else if (value < 70) return 55;
+            else if (value < 85) return 70;
+            else if (value < 100) return 85;
+            else return 100;
+        }
+        return 70;
+    } catch {
+        return 70;
+    }
+};
+
 export const useBackgroundStore = create((set, get) => ({
     // 当前选中的背景ID（从localStorage初始化）
     currentBackgroundId: getStoredBackgroundId(),
     // 遮罩透明度（0-80）
     overlayOpacity: getStoredOverlayOpacity(),
+    // 聊天框透明度（40-100，对应不透明度，值越大越不透明）
+    chatBoxOpacity: getStoredChatBoxOpacity(),
     // 是否正在更新
     isUpdating: false,
 
@@ -114,16 +138,66 @@ export const useBackgroundStore = create((set, get) => ({
         }
     },
 
+    // 设置聊天框透明度
+    setChatBoxOpacity: async (opacity) => {
+        const { isUpdating } = get();
+        if (isUpdating) return;
+
+        set({ isUpdating: true });
+        try {
+            // 立即更新本地状态和localStorage
+            set({ chatBoxOpacity: opacity });
+            localStorage.setItem("chat-box-opacity", opacity.toString());
+
+            // 同步到服务器
+            await axiosInstance.put("/auth/update-profile", { chatBoxOpacity: opacity });
+
+            // 更新 authUser
+            const { authUser } = useAuthStore.getState();
+            if (authUser) {
+                useAuthStore.setState({
+                    authUser: { ...authUser, chatBoxOpacity: opacity }
+                });
+            }
+
+            toast.success("聊天框透明度已更新");
+        } catch (error) {
+            console.error("更新聊天框透明度失败:", error);
+            // 失败时恢复之前的状态
+            const { authUser } = useAuthStore.getState();
+            const previousOpacity = authUser?.chatBoxOpacity ?? 70;
+            set({ chatBoxOpacity: previousOpacity });
+            localStorage.setItem("chat-box-opacity", previousOpacity.toString());
+            toast.error(error.response?.data?.message || "更新聊天框透明度失败");
+        } finally {
+            set({ isUpdating: false });
+        }
+    },
+
     // 初始化背景（从authUser加载）
-    initBackground: (backgroundId, overlayOpacity) => {
+    initBackground: (backgroundId, overlayOpacity, chatBoxOpacity) => {
         const backgroundIdToSet = backgroundId || null;
         const opacityToSet = overlayOpacity ?? 30;
+        let chatBoxOpacityToSet = chatBoxOpacity ?? 70;
+        // 确保值在有效范围内（40-100），并映射到最接近的选项
+        if (chatBoxOpacityToSet < 40) chatBoxOpacityToSet = 40;
+        else if (chatBoxOpacityToSet > 100) chatBoxOpacityToSet = 100;
+        else if (![40, 55, 70, 85, 100].includes(chatBoxOpacityToSet)) {
+            // 映射到最接近的选项
+            if (chatBoxOpacityToSet < 55) chatBoxOpacityToSet = 40;
+            else if (chatBoxOpacityToSet < 70) chatBoxOpacityToSet = 55;
+            else if (chatBoxOpacityToSet < 85) chatBoxOpacityToSet = 70;
+            else if (chatBoxOpacityToSet < 100) chatBoxOpacityToSet = 85;
+            else chatBoxOpacityToSet = 100;
+        }
         set({
             currentBackgroundId: backgroundIdToSet,
-            overlayOpacity: opacityToSet
+            overlayOpacity: opacityToSet,
+            chatBoxOpacity: chatBoxOpacityToSet
         });
         localStorage.setItem("chat-background-id", backgroundIdToSet || "");
         localStorage.setItem("chat-overlay-opacity", opacityToSet.toString());
+        localStorage.setItem("chat-box-opacity", chatBoxOpacityToSet.toString());
 
         // 智能预加载：预加载当前使用的背景图
         if (backgroundIdToSet) {

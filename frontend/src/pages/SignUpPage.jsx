@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import AuthImagePattern from "../components/AuthImagePattern";
+import MeteorShower from "../components/MeteorShower";
 import toast from "react-hot-toast";
 
 const SignUpPage = () => {
@@ -37,16 +38,22 @@ const SignUpPage = () => {
     return (
         <div className="min-h-screen grid lg:grid-cols-2">
             {/* left side */}
-            <div className="flex flex-col justify-center items-center p-6 sm:p-12">
-                <div className="w-full max-w-md space-y-8">
+            <div className="relative flex flex-col justify-center items-center p-6 sm:p-12">
+                {/* 流星背景效果 */}
+                <MeteorShower />
+                <div className="relative w-full max-w-md space-y-8 z-10">
                     {/* LOGO */}
                     <div className="text-center mb-8">
                         <div className="flex flex-col items-center gap-2 group">
                             <div
                                 className="size-12 rounded-xl bg-primary/10 flex items-center justify-center 
-              group-hover:bg-primary/20 transition-colors"
+              group-hover:bg-primary/20 transition-colors p-2"
                             >
-                                <MessageSquare className="size-6 text-primary" />
+                                <img
+                                    src="/logo.png"
+                                    alt="Chatty Logo"
+                                    className="w-full h-full object-contain rounded-lg"
+                                />
                             </div>
                             <h1 className="text-2xl font-bold mt-2">创建账号</h1>
                             <p className="text-base-content/60">开始您的免费账号之旅</p>

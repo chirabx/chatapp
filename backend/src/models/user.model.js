@@ -35,6 +35,12 @@ const userSchema = new mongoose.Schema(
             min: 0,
             max: 80,
         },
+        chatBoxOpacity: {
+            type: Number,
+            default: 70, // 默认70%不透明度（聊天框）
+            min: 40,
+            max: 100,
+        },
     },
     { timestamps: true }
 );
