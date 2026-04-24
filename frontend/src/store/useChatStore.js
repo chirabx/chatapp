@@ -11,14 +11,19 @@ export const useChatStore = create((set, get) => ({
     isMessagesLoading: false,
     isSendingMessage: false,
     pendingMessages: [], // 正在发送的消息
+    lastSendTime: 0, // 上次发送消息的时间戳
+    minSendInterval: 3000, // 最小发送间隔（毫秒），3秒
 
     getUsers: async () => {
         set({ isUsersLoading: true });
         try {
             const res = await axiosInstance.get("/messages/users");
-            set({ users: res.data });
+            // 确保返回的数据是数组
+            const usersData = Array.isArray(res.data) ? res.data : [];
+            set({ users: usersData });
         } catch (error) {
-            toast.error(error.response.data.message);
+            set({ users: [] });
+            toast.error(error.response?.data?.message || "获取用户列表失败");
         } finally {
             set({ isUsersLoading: false });
         }
@@ -28,15 +33,18 @@ export const useChatStore = create((set, get) => ({
         set({ isMessagesLoading: true });
         try {
             const res = await axiosInstance.get(`/messages/${userId}`);
-            set({ messages: res.data });
+            // 确保返回的数据是数组
+            const messagesData = Array.isArray(res.data) ? res.data : [];
+            set({ messages: messagesData });
         } catch (error) {
-            toast.error(error.response.data.message);
+            set({ messages: [] });
+            toast.error(error.response?.data?.message || "获取消息失败");
         } finally {
             set({ isMessagesLoading: false });
         }
     },
     sendMessage: async (messageData) => {
-        const { selectedUser, messages, isSendingMessage } = get();
+        const { selectedUser, messages, isSendingMessage, lastSendTime, minSendInterval } = get();
 
         // 防止重复发送
         if (isSendingMessage) {
@@ -46,6 +54,15 @@ export const useChatStore = create((set, get) => ({
 
         if (!selectedUser) {
             toast.error("请先选择一个聊天对象");
+            return;
+        }
+
+        // 防刷
+        const now = Date.now();
+        const timeSinceLastSend = now - lastSendTime;
+        if (timeSinceLastSend < minSendInterval) {
+            const remainingTime = Math.ceil((minSendInterval - timeSinceLastSend) / 1000);
+            toast.error(`发送过快，请等待 ${remainingTime} 秒后再试`);
             return;
         }
 
@@ -62,8 +79,9 @@ export const useChatStore = create((set, get) => ({
 
         set({
             isSendingMessage: true,
-            messages: [...messages, tempMessage],
-            pendingMessages: [...get().pendingMessages, tempMessage.tempId]
+            messages: [...(Array.isArray(messages) ? messages : []), tempMessage],
+            pendingMessages: [...(Array.isArray(get().pendingMessages) ? get().pendingMessages : []), tempMessage.tempId],
+            lastSendTime: now // 更新最后发送时间
         });
 
         try {
@@ -71,17 +89,17 @@ export const useChatStore = create((set, get) => ({
 
             // 移除临时消息，添加真实消息
             set((state) => ({
-                messages: state.messages
+                messages: (Array.isArray(state.messages) ? state.messages : [])
                     .filter(msg => msg.tempId !== tempMessage.tempId)
                     .concat([res.data]),
-                pendingMessages: state.pendingMessages.filter(id => id !== tempMessage.tempId),
+                pendingMessages: Array.isArray(state.pendingMessages) ? state.pendingMessages.filter(id => id !== tempMessage.tempId) : [],
                 isSendingMessage: false
             }));
         } catch (error) {
             // 发送失败，移除临时消息并显示错误
             set((state) => ({
-                messages: state.messages.filter(msg => msg.tempId !== tempMessage.tempId),
-                pendingMessages: state.pendingMessages.filter(id => id !== tempMessage.tempId),
+                messages: Array.isArray(state.messages) ? state.messages.filter(msg => msg.tempId !== tempMessage.tempId) : [],
+                pendingMessages: Array.isArray(state.pendingMessages) ? state.pendingMessages.filter(id => id !== tempMessage.tempId) : [],
                 isSendingMessage: false
             }));
             toast.error(error.response?.data?.message || "发送消息失败");
@@ -104,7 +122,7 @@ export const useChatStore = create((set, get) => ({
             // 只添加对方发送的消息，不添加自己发送的消息（避免重复）
             if (isMessageSentFromSelectedUser && !isMessageSentByMe) {
                 set((state) => ({
-                    messages: [...state.messages, newMessage],
+                    messages: [...(Array.isArray(state.messages) ? state.messages : []), newMessage],
                 }));
             }
         });

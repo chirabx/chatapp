@@ -48,12 +48,13 @@ const Sidebar = () => {
         loadData();
     }, [fetchFriends, fetchGroups, setPageLoading]);
 
+    const friendsArray = Array.isArray(friends) ? friends : [];
     const filteredFriends = showOnlineOnly
-        ? friends.filter((friend) => onlineUsers.includes(friend._id))
-        : friends;
+        ? friendsArray.filter((friend) => onlineUsers.includes(friend._id))
+        : friendsArray;
 
     // 计算在线好友数量
-    const onlineFriendsCount = friends.filter(friend => onlineUsers.includes(friend._id)).length;
+    const onlineFriendsCount = friendsArray.filter(friend => onlineUsers.includes(friend._id)).length;
 
     const handleRemoveFriend = (friend) => {
         setFriendToRemove(friend);
@@ -319,7 +320,7 @@ const Sidebar = () => {
                     {/* 群组列表 */}
                     {activeTab === "groups" && (
                         <>
-                            {groups.map((group) => (
+                            {Array.isArray(groups) && groups.map((group) => (
                                 <div
                                     key={group._id}
                                     className="group relative w-full p-2 sm:p-3 flex items-center gap-2 sm:gap-3
@@ -381,7 +382,7 @@ const Sidebar = () => {
                                 </div>
                             ))}
 
-                            {groups.length === 0 && (
+                            {(!Array.isArray(groups) || groups.length === 0) && (
                                 <div className="text-center text-zinc-500 py-4">
                                     暂无群组
                                 </div>

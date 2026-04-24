@@ -37,7 +37,7 @@ const LoginPage = () => {
                             >
                                 <img
                                     src="/logo.png"
-                                    alt="Chatty Logo"
+                                    alt="Glow Chat Logo"
                                     className="w-full h-full object-contain rounded-lg"
                                 />
                             </div>

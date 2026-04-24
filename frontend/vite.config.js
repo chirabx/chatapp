@@ -19,6 +19,10 @@ export default defineConfig({
     },
   },
   server: {
-    hmr: false, // 生产构建时禁用 HMR
+    port: 5173,
+    host: true, // 允许外部访问
+    hmr: {
+      port: 5173,
+    },
   },
 })

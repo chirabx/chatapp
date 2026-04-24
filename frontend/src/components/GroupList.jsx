@@ -79,7 +79,7 @@ const GroupList = () => {
                 </div>
 
                 <div className="overflow-y-auto w-full py-3">
-                    {groups.map((group) => (
+                    {Array.isArray(groups) && groups.map((group) => (
                         <div
                             key={group._id}
                             className="group relative w-full p-3 flex items-center gap-3

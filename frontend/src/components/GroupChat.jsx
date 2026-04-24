@@ -12,7 +12,7 @@ import ClearChatModal from "./ClearChatModal";
 const GroupChat = () => {
     const { selectedGroup, groupMessages, groupMembers, isMessagesLoading, isSendingMessage,
         getGroupMessages, sendGroupMessage, getGroupMembers, clearGroupChatHistory, clearGroupChatState } = useGroupStore();
-    const { authUser, socket } = useAuthStore();
+    const { authUser, socket, onlineUsers } = useAuthStore();
     const [showMembers, setShowMembers] = useState(false);
     const [showClearModal, setShowClearModal] = useState(false);
     const [isClearing, setIsClearing] = useState(false);
@@ -181,9 +181,19 @@ const GroupChat = () => {
                             className="size-8 sm:size-10 object-cover rounded-full flex-shrink-0"
                         />
                         <div className="min-w-0 flex-1">
-                            <h3 className="font-medium text-sm sm:text-base truncate">
-                                {selectedGroup.name}
-                            </h3>
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-medium text-sm sm:text-base truncate">
+                                    {selectedGroup.name}
+                                </h3>
+                                {Array.isArray(groupMembers) && groupMembers.length > 0 && (
+                                    <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-success/10 text-xs text-success font-medium">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></div>
+                                        <span>
+                                            {groupMembers.filter(member => onlineUsers.includes(member.user._id)).length} 在线
+                                        </span>
+                                    </span>
+                                )}
+                            </div>
                             <p className="text-xs sm:text-sm text-base-content/70 truncate">
                                 {selectedGroup.members.length} 成员
                             </p>
@@ -241,7 +251,7 @@ const GroupChat = () => {
                     : 'translate-x-full opacity-0 pointer-events-none'
                     }`}>
                     <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-medium text-sm sm:text-base">群成员 ({groupMembers.length})</h4>
+                        <h4 className="font-medium text-sm sm:text-base">群成员 ({Array.isArray(groupMembers) ? groupMembers.length : 0})</h4>
                         <button
                             onClick={() => setShowMembers(false)}
                             className="btn btn-sm btn-ghost p-1 sm:hidden"
@@ -251,7 +261,7 @@ const GroupChat = () => {
                         </button>
                     </div>
                     <div className="space-y-2 overflow-y-auto h-full pb-16">
-                        {groupMembers.map((member) => (
+                        {Array.isArray(groupMembers) && groupMembers.map((member) => (
                             <div
                                 key={member.user._id}
                                 className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-base-300 transition-colors duration-200"

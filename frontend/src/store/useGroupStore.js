@@ -12,6 +12,8 @@ export const useGroupStore = create((set, get) => ({
     isCreatingGroup: false, // 群组创建状态
     isSendingMessage: false, // 群组消息发送状态
     pendingGroupMessages: [], // 正在发送的群组消息
+    lastSendTime: 0, // 上次发送消息的时间戳
+    minSendInterval: 5000, // 最小发送间隔（毫秒），5秒
     lastFetchTime: null,
     cacheExpiry: 5 * 60 * 1000, // 5分钟缓存
 
@@ -21,21 +23,23 @@ export const useGroupStore = create((set, get) => ({
         const now = Date.now();
 
         // 如果缓存未过期且不是强制刷新，直接返回
-        if (!forceRefresh && lastFetchTime && (now - lastFetchTime) < cacheExpiry && groups.length > 0) {
+        if (!forceRefresh && lastFetchTime && (now - lastFetchTime) < cacheExpiry && Array.isArray(groups) && groups.length > 0) {
             return groups;
         }
 
         set({ isLoading: true });
         try {
             const res = await axiosInstance.get("/groups");
+            // 确保返回的数据是数组
+            const groupsData = Array.isArray(res.data) ? res.data : [];
             set({
-                groups: res.data,
+                groups: groupsData,
                 lastFetchTime: now,
                 isLoading: false
             });
-            return res.data;
+            return groupsData;
         } catch (error) {
-            set({ isLoading: false });
+            set({ isLoading: false, groups: [] });
             toast.error(error.response?.data?.message || "获取群组列表失败");
             throw error;
         }
@@ -61,7 +65,7 @@ export const useGroupStore = create((set, get) => ({
             const res = await axiosInstance.post("/groups", groupData);
             const newGroup = res.data;
             set((state) => ({
-                groups: [newGroup, ...state.groups],
+                groups: [newGroup, ...(Array.isArray(state.groups) ? state.groups : [])],
                 isCreatingGroup: false
             }));
             toast.success("群组创建成功");
@@ -100,9 +104,9 @@ export const useGroupStore = create((set, get) => ({
             const res = await axiosInstance.put(`/groups/${groupId}`, updateData);
             const updatedGroup = res.data;
             set((state) => ({
-                groups: state.groups.map(group =>
+                groups: Array.isArray(state.groups) ? state.groups.map(group =>
                     group._id === groupId ? updatedGroup : group
-                ),
+                ) : [updatedGroup],
                 selectedGroup: state.selectedGroup?._id === groupId ? updatedGroup : state.selectedGroup
             }));
             toast.success("群组信息已更新");
@@ -119,9 +123,9 @@ export const useGroupStore = create((set, get) => ({
             const res = await axiosInstance.post(`/groups/${groupId}/members`, { email });
             const updatedGroup = res.data;
             set((state) => ({
-                groups: state.groups.map(group =>
+                groups: Array.isArray(state.groups) ? state.groups.map(group =>
                     group._id === groupId ? updatedGroup : group
-                ),
+                ) : [updatedGroup],
                 selectedGroup: state.selectedGroup?._id === groupId ? updatedGroup : state.selectedGroup
             }));
             toast.success("成员添加成功");
@@ -138,9 +142,9 @@ export const useGroupStore = create((set, get) => ({
             const res = await axiosInstance.post(`/groups/${groupId}/members`, { userId });
             const updatedGroup = res.data;
             set((state) => ({
-                groups: state.groups.map(group =>
+                groups: Array.isArray(state.groups) ? state.groups.map(group =>
                     group._id === groupId ? updatedGroup : group
-                ),
+                ) : [updatedGroup],
                 selectedGroup: state.selectedGroup?._id === groupId ? updatedGroup : state.selectedGroup
             }));
             toast.success("成员添加成功");
@@ -157,9 +161,9 @@ export const useGroupStore = create((set, get) => ({
             const res = await axiosInstance.delete(`/groups/${groupId}/members/${memberId}`);
             const updatedGroup = res.data;
             set((state) => ({
-                groups: state.groups.map(group =>
+                groups: Array.isArray(state.groups) ? state.groups.map(group =>
                     group._id === groupId ? updatedGroup : group
-                ),
+                ) : [updatedGroup],
                 selectedGroup: state.selectedGroup?._id === groupId ? updatedGroup : state.selectedGroup
             }));
             toast.success("成员已移除");
@@ -175,7 +179,7 @@ export const useGroupStore = create((set, get) => ({
         try {
             await axiosInstance.post(`/groups/${groupId}/leave`);
             set((state) => ({
-                groups: state.groups.filter(group => group._id !== groupId),
+                groups: Array.isArray(state.groups) ? state.groups.filter(group => group._id !== groupId) : [],
                 selectedGroup: state.selectedGroup?._id === groupId ? null : state.selectedGroup
             }));
             toast.success("已退出群组");
@@ -190,7 +194,7 @@ export const useGroupStore = create((set, get) => ({
         try {
             await axiosInstance.delete(`/groups/${groupId}`);
             set((state) => ({
-                groups: state.groups.filter(group => group._id !== groupId),
+                groups: Array.isArray(state.groups) ? state.groups.filter(group => group._id !== groupId) : [],
                 selectedGroup: state.selectedGroup?._id === groupId ? null : state.selectedGroup
             }));
             toast.success("群组已删除");
@@ -206,11 +210,11 @@ export const useGroupStore = create((set, get) => ({
 
         // 防止重复请求
         if (isMessagesLoading) {
-            return groupMessages;
+            return Array.isArray(groupMessages) ? groupMessages : [];
         }
 
         // 如果已经有消息且是同一个群组，直接返回
-        if (selectedGroup && selectedGroup._id === groupId && groupMessages.length > 0) {
+        if (selectedGroup && selectedGroup._id === groupId && Array.isArray(groupMessages) && groupMessages.length > 0) {
             return groupMessages;
         }
 
@@ -222,10 +226,13 @@ export const useGroupStore = create((set, get) => ({
         set({ isMessagesLoading: true });
         try {
             const res = await axiosInstance.get(`/group-messages/${groupId}/messages?page=${page}&limit=${limit}`);
-            set({ groupMessages: res.data });
-            return res.data;
+            // 确保返回的数据是数组
+            const messagesData = Array.isArray(res.data) ? res.data : [];
+            set({ groupMessages: messagesData });
+            return messagesData;
         } catch (error) {
             console.error("获取群组消息失败:", error);
+            set({ groupMessages: [] });
             toast.error(error.response?.data?.message || "获取群组消息失败");
             return [];
         } finally {
@@ -235,7 +242,7 @@ export const useGroupStore = create((set, get) => ({
 
     // 发送群组消息
     sendGroupMessage: async (groupId, messageData, authUser) => {
-        const { isSendingMessage, groupMessages } = get();
+        const { isSendingMessage, groupMessages, lastSendTime, minSendInterval } = get();
 
         // 防止重复发送
         if (isSendingMessage) {
@@ -245,6 +252,15 @@ export const useGroupStore = create((set, get) => ({
 
         if (!groupId) {
             toast.error("请先选择一个群组");
+            return;
+        }
+
+        // 防刷机制：检查发送间隔
+        const now = Date.now();
+        const timeSinceLastSend = now - lastSendTime;
+        if (timeSinceLastSend < minSendInterval) {
+            const remainingTime = Math.ceil((minSendInterval - timeSinceLastSend) / 1000);
+            toast.error(`发送过快，请等待 ${remainingTime} 秒后再试`);
             return;
         }
 
@@ -266,8 +282,9 @@ export const useGroupStore = create((set, get) => ({
 
         set({
             isSendingMessage: true,
-            groupMessages: [...groupMessages, tempMessage],
-            pendingGroupMessages: [...get().pendingGroupMessages, tempMessage.tempId]
+            groupMessages: [...(Array.isArray(groupMessages) ? groupMessages : []), tempMessage],
+            pendingGroupMessages: [...(Array.isArray(get().pendingGroupMessages) ? get().pendingGroupMessages : []), tempMessage.tempId],
+            lastSendTime: now // 更新最后发送时间
         });
 
         try {
@@ -277,15 +294,15 @@ export const useGroupStore = create((set, get) => ({
             // 等待socket事件自动替换临时消息，这里只需要标记发送完成
             // Socket事件会通过 handleNewGroupMessage 处理，将临时消息替换为真实消息
             set((state) => ({
-                pendingGroupMessages: state.pendingGroupMessages.filter(id => id !== tempMessage.tempId),
+                pendingGroupMessages: Array.isArray(state.pendingGroupMessages) ? state.pendingGroupMessages.filter(id => id !== tempMessage.tempId) : [],
                 isSendingMessage: false
             }));
             return newMessage;
         } catch (error) {
             // 发送失败，移除临时消息并显示错误
             set((state) => ({
-                groupMessages: state.groupMessages.filter(msg => msg.tempId !== tempMessage.tempId),
-                pendingGroupMessages: state.pendingGroupMessages.filter(id => id !== tempMessage.tempId),
+                groupMessages: Array.isArray(state.groupMessages) ? state.groupMessages.filter(msg => msg.tempId !== tempMessage.tempId) : [],
+                pendingGroupMessages: Array.isArray(state.pendingGroupMessages) ? state.pendingGroupMessages.filter(id => id !== tempMessage.tempId) : [],
                 isSendingMessage: false
             }));
             toast.error(error.response?.data?.message || "发送消息失败");
@@ -298,7 +315,7 @@ export const useGroupStore = create((set, get) => ({
         const { groupMembers, selectedGroup } = get();
 
         // 如果已经有成员且是同一个群组，直接返回
-        if (selectedGroup && selectedGroup._id === groupId && groupMembers.length > 0) {
+        if (selectedGroup && selectedGroup._id === groupId && Array.isArray(groupMembers) && groupMembers.length > 0) {
             return groupMembers;
         }
 
@@ -309,10 +326,13 @@ export const useGroupStore = create((set, get) => ({
 
         try {
             const res = await axiosInstance.get(`/group-messages/${groupId}/members`);
-            set({ groupMembers: res.data });
-            return res.data;
+            // 确保返回的数据是数组
+            const membersData = Array.isArray(res.data) ? res.data : [];
+            set({ groupMembers: membersData });
+            return membersData;
         } catch (error) {
             console.error("获取群组成员失败:", error);
+            set({ groupMembers: [] });
             toast.error(error.response?.data?.message || "获取群组成员失败");
             return [];
         }
@@ -326,8 +346,10 @@ export const useGroupStore = create((set, get) => ({
                 return state;
             }
 
+            const currentMessages = Array.isArray(state.groupMessages) ? state.groupMessages : [];
+
             // 检查是否已经存在该消息（通过_id检查）
-            const isDuplicate = state.groupMessages.some(msg =>
+            const isDuplicate = currentMessages.some(msg =>
                 msg._id === message._id
             );
 
@@ -337,7 +359,7 @@ export const useGroupStore = create((set, get) => ({
 
             // 检查是否有对应的临时消息（通过senderId和内容匹配）
             // 如果消息是来自当前用户的待发送消息，则替换临时消息
-            const tempMessageIndex = state.groupMessages.findIndex(msg =>
+            const tempMessageIndex = currentMessages.findIndex(msg =>
                 msg.isPending &&
                 msg.tempId &&
                 msg.senderId?._id === message.senderId?._id &&
@@ -349,7 +371,7 @@ export const useGroupStore = create((set, get) => ({
 
             if (tempMessageIndex !== -1) {
                 // 替换临时消息为真实消息
-                const newMessages = [...state.groupMessages];
+                const newMessages = [...currentMessages];
                 newMessages[tempMessageIndex] = message;
                 return {
                     groupMessages: newMessages
@@ -358,7 +380,7 @@ export const useGroupStore = create((set, get) => ({
 
             // 如果没有对应的临时消息，直接添加
             return {
-                groupMessages: [...state.groupMessages, message]
+                groupMessages: [...currentMessages, message]
             };
         });
     },
@@ -366,7 +388,7 @@ export const useGroupStore = create((set, get) => ({
     // 处理群组更新
     handleGroupUpdated: (group) => {
         set((state) => ({
-            groups: state.groups.map(g => g._id === group._id ? group : g),
+            groups: Array.isArray(state.groups) ? state.groups.map(g => g._id === group._id ? group : g) : [group],
             selectedGroup: state.selectedGroup?._id === group._id ? group : state.selectedGroup
         }));
     },
@@ -374,7 +396,7 @@ export const useGroupStore = create((set, get) => ({
     // 处理群成员添加
     handleGroupMemberAdded: (data) => {
         set((state) => ({
-            groups: state.groups.map(g => g._id === data.group._id ? data.group : g),
+            groups: Array.isArray(state.groups) ? state.groups.map(g => g._id === data.group._id ? data.group : g) : [data.group],
             selectedGroup: state.selectedGroup?._id === data.group._id ? data.group : state.selectedGroup
         }));
         toast.success(`${data.newMember.fullName} 加入了群组`);
@@ -383,7 +405,7 @@ export const useGroupStore = create((set, get) => ({
     // 处理群成员移除
     handleGroupMemberRemoved: (data) => {
         set((state) => ({
-            groups: state.groups.map(g => g._id === data.group._id ? data.group : g),
+            groups: Array.isArray(state.groups) ? state.groups.map(g => g._id === data.group._id ? data.group : g) : [data.group],
             selectedGroup: state.selectedGroup?._id === data.group._id ? data.group : state.selectedGroup
         }));
     },
@@ -391,7 +413,7 @@ export const useGroupStore = create((set, get) => ({
     // 处理群成员离开
     handleGroupMemberLeft: (data) => {
         set((state) => ({
-            groups: state.groups.map(g => g._id === data.group._id ? data.group : g),
+            groups: Array.isArray(state.groups) ? state.groups.map(g => g._id === data.group._id ? data.group : g) : [data.group],
             selectedGroup: state.selectedGroup?._id === data.group._id ? data.group : state.selectedGroup
         }));
     },
@@ -399,7 +421,7 @@ export const useGroupStore = create((set, get) => ({
     // 处理群组删除
     handleGroupDeleted: (data) => {
         set((state) => ({
-            groups: state.groups.filter(g => g._id !== data.groupId),
+            groups: Array.isArray(state.groups) ? state.groups.filter(g => g._id !== data.groupId) : [],
             selectedGroup: state.selectedGroup?._id === data.groupId ? null : state.selectedGroup
         }));
         toast.success(`群组 "${data.groupName}" 已被删除`);
@@ -408,7 +430,7 @@ export const useGroupStore = create((set, get) => ({
     // 处理被移除出群组
     handleRemovedFromGroup: (data) => {
         set((state) => ({
-            groups: state.groups.filter(g => g._id !== data.groupId),
+            groups: Array.isArray(state.groups) ? state.groups.filter(g => g._id !== data.groupId) : [],
             selectedGroup: state.selectedGroup?._id === data.groupId ? null : state.selectedGroup
         }));
         toast.error(`您已被移除出群组 "${data.groupName}"`);
@@ -416,7 +438,7 @@ export const useGroupStore = create((set, get) => ({
 
     handleGroupMessageDeleted: (data) => {
         set((state) => ({
-            groupMessages: state.groupMessages.filter(msg => msg._id !== data.messageId)
+            groupMessages: Array.isArray(state.groupMessages) ? state.groupMessages.filter(msg => msg._id !== data.messageId) : []
         }));
     },
 

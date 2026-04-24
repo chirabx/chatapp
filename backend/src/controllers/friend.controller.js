@@ -118,7 +118,7 @@ export const getFriendRequests = async (req, res) => {
 
         res.status(200).json(formattedRequests);
     } catch (error) {
-        console.error("获取好友请求失败:", error);
+        toast.error("获取好友请求失败");
         res.status(500).json({ message: error.message });
     }
 };
@@ -176,12 +176,18 @@ export const getFriends = async (req, res) => {
             status: "accepted"
         });
 
+
         // 获取好友ID列表
         const friendIds = friendRequests.map(request => {
-            return request.sender.toString() === userId.toString()
-                ? request.receiver
-                : request.sender;
+            const senderId = request.sender.toString();
+            const receiverId = request.receiver.toString();
+            return senderId === userId.toString() ? receiverId : senderId;
         });
+
+        // 如果没有任何好友，返回空数组
+        if (friendIds.length === 0) {
+            return res.status(200).json([]);
+        }
 
         // 获取好友详细信息
         const friends = await User.find({ _id: { $in: friendIds } })
@@ -189,6 +195,7 @@ export const getFriends = async (req, res) => {
 
         res.status(200).json(friends);
     } catch (error) {
+        console.error("获取好友列表失败:", error);
         res.status(500).json({ message: error.message });
     }
 };

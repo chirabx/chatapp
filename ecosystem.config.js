@@ -1,6 +1,6 @@
 module.exports = {
   apps: [{
-    name: 'chatapp-backend',
+    name: 'glow-chat-backend',
     script: './src/index.js',
     cwd: './backend',
     instances: 1,
@@ -10,7 +10,7 @@ module.exports = {
     env_production: {
       NODE_ENV: 'production',
       PORT: 5001,
-      MONGO_URI: 'mongodb+srv://chirabx:gvdR0HPrswATRUPl@cluster0.l5ake.mongodb.net/chat_db?retryWrites=true&w=majority&appName=Cluster0',
+      MONGO_URI: 'mongodb://127.0.0.1:27017/chat_db',
       JWT_SECRET: 'mysecretkey',
       CLOUDINARY_CLOUD_NAME: 'dqoyzkcad',
       CLOUDINARY_API_KEY: '919174126153144',

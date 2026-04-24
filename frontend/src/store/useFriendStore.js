@@ -16,21 +16,23 @@ export const useFriendStore = create((set, get) => ({
         const now = Date.now();
 
         // 如果缓存未过期且不是强制刷新，直接返回
-        if (!forceRefresh && lastFetchTime && (now - lastFetchTime) < cacheExpiry && friends.length > 0) {
+        if (!forceRefresh && lastFetchTime && (now - lastFetchTime) < cacheExpiry && Array.isArray(friends) && friends.length > 0) {
             return friends;
         }
 
         set({ isLoading: true });
         try {
             const res = await axiosInstance.get("/friends");
+            // 确保返回的数据是数组
+            const friendsData = Array.isArray(res.data) ? res.data : [];
             set({
-                friends: res.data,
+                friends: friendsData,
                 lastFetchTime: now,
                 isLoading: false
             });
-            return res.data;
+            return friendsData;
         } catch (error) {
-            set({ isLoading: false });
+            set({ isLoading: false, friends: [] });
             toast.error(error.response?.data?.message || "获取好友列表失败");
             throw error;
         }
@@ -39,13 +41,16 @@ export const useFriendStore = create((set, get) => ({
     fetchFriendRequests: async () => {
         try {
             const res = await axiosInstance.get("/friends/requests");
-            const unreadCount = res.data.filter(req => !req.read).length;
+            // 确保返回的数据是数组
+            const requestsData = Array.isArray(res.data) ? res.data : [];
+            const unreadCount = requestsData.filter(req => !req.read).length;
             set({
-                friendRequests: res.data,
+                friendRequests: requestsData,
                 unreadRequests: unreadCount
             });
             return unreadCount;
         } catch (error) {
+            set({ friendRequests: [] });
             toast.error(error.response?.data?.message || "获取好友请求失败");
             return 0;
         }
@@ -73,7 +78,7 @@ export const useFriendStore = create((set, get) => ({
         try {
             const response = await axiosInstance.put(`/friends/requests/${requestId}`, { status });
             set((state) => ({
-                friendRequests: state.friendRequests.filter((req) => req._id !== requestId),
+                friendRequests: Array.isArray(state.friendRequests) ? state.friendRequests.filter((req) => req._id !== requestId) : [],
             }));
             if (status === "accepted") {
                 await get().fetchFriends();
@@ -91,7 +96,7 @@ export const useFriendStore = create((set, get) => ({
         try {
             await axiosInstance.delete(`/friends/${friendId}`);
             set((state) => ({
-                friends: state.friends.filter((friend) => friend._id !== friendId),
+                friends: Array.isArray(state.friends) ? state.friends.filter((friend) => friend._id !== friendId) : [],
             }));
 
             const selectedUser = useChatStore.getState().selectedUser;
@@ -107,13 +112,14 @@ export const useFriendStore = create((set, get) => ({
 
     handleNewFriendRequest: (request) => {
         set((state) => {
-            const isDuplicate = state.friendRequests.some(req => req._id === request.requestId);
+            const currentRequests = Array.isArray(state.friendRequests) ? state.friendRequests : [];
+            const isDuplicate = currentRequests.some(req => req._id === request.requestId);
             if (isDuplicate) {
                 return state;
             }
 
             return {
-                friendRequests: [...state.friendRequests, {
+                friendRequests: [...currentRequests, {
                     _id: request.requestId,
                     sender: {
                         _id: request.sender._id,

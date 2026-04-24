@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useFriendStore } from "../store/useFriendStore";
-import { LogOut, Settings, User, Bell, Gamepad2, Home } from "lucide-react";
+import { LogOut, Settings, User, Bell, Home } from "lucide-react";
 import FriendRequestIcon from "./FriendRequestIcon";
 
 const Navbar = () => {
@@ -19,10 +19,10 @@ const Navbar = () => {
                         <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-all">
                             <img
                                 src="/logo.png"
-                                alt="Chatty Logo"
+                                alt="Glow Chat Logo"
                                 className="size-9 rounded-lg object-contain"
                             />
-                            <h1 className="text-lg font-bold">Chatty</h1>
+                            <h1 className="text-lg font-bold">Glow Chat</h1>
                         </Link>
                         {authUser && (
                             <Link
@@ -39,14 +39,6 @@ const Navbar = () => {
                         {authUser && <FriendRequestIcon />}
                         {authUser && (
                             <>
-                                <Link
-                                    to="/ai-games"
-                                    className="btn btn-sm btn-ghost gap-2 transition-colors"
-                                >
-                                    <Gamepad2 className="w-4 h-4" />
-                                    <span className="hidden sm:inline">AI 趣味游戏</span>
-                                </Link>
-
                                 <Link
                                     to="/settings"
                                     className="btn btn-sm btn-ghost gap-2 transition-colors"

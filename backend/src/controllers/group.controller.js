@@ -5,6 +5,7 @@ import { getIO } from "../lib/socket.js";
 // 创建群组
 export const createGroup = async (req, res) => {
     try {
+        console.log("收到创建群组请求:", req.method, req.path);
         const { name, description, avatar } = req.body;
         const createdBy = req.user._id;
 

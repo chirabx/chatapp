@@ -44,9 +44,14 @@ friendRequestSchema.index(
 
 const FriendRequest = mongoose.model("FriendRequest", friendRequestSchema);
 
-// 确保在模型创建后删除旧索引
+// 在数据库连接成功后删除旧索引
+mongoose.connection.once('connected', () => {
 FriendRequest.collection.dropIndexes().catch(err => {
-    console.log("删除索引时出错:", err);
+        // 忽略索引不存在的错误
+        if (err.code !== 27) {
+            console.log("删除索引时出错:", err.message);
+        }
+    });
 });
 
 export default FriendRequest; 

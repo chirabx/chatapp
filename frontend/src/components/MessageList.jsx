@@ -35,7 +35,7 @@ const MessageList = ({
                             >
                                 <img
                                     src="/logo.png"
-                                    alt="Chatty Logo"
+                                    alt="Glow Chat Logo"
                                     className="w-12 h-12 object-contain"
                                 />
                             </div>

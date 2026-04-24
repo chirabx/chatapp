@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 import { useFriendStore } from "./useFriendStore.js";
 import { useBackgroundStore } from "./useBackgroundStore.js";
+import { useGroupStore } from "./useGroupStore.js";
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
 
@@ -15,6 +16,8 @@ export const useAuthStore = create((set, get) => ({
     isChangingPassword: false,
     isCheckingAuth: true,
     onlineUsers: [],
+    previousOnlineUsers: [], // 保存之前的在线用户列表，用于检测新上线的好友
+    onlineFriendNotifications: [], // 在线好友通知队列
     socket: null,
 
     checkAuth: async () => {
@@ -149,7 +152,40 @@ export const useAuthStore = create((set, get) => ({
             });
 
             socket.on("getOnlineUsers", (userIds) => {
-                set({ onlineUsers: userIds });
+                const { previousOnlineUsers } = get();
+                const { friends } = useFriendStore.getState();
+
+                // 检测新上线的好友（只在有之前的在线用户列表时检测，避免首次连接时误触发）
+                if (previousOnlineUsers && previousOnlineUsers.length > 0 && friends.length > 0) {
+                    const newOnlineUsers = userIds.filter(
+                        userId => !previousOnlineUsers.includes(userId)
+                    );
+
+                    // 找出新上线的好友
+                    newOnlineUsers.forEach(userId => {
+                        const friend = friends.find(f => f._id === userId);
+                        if (friend) {
+                            // 添加通知到队列
+                            const notificationId = `online-${userId}-${Date.now()}`;
+                            set((state) => ({
+                                onlineFriendNotifications: [
+                                    ...state.onlineFriendNotifications,
+                                    {
+                                        id: notificationId,
+                                        friendId: userId,
+                                        friendName: friend.fullName || friend.email
+                                    }
+                                ]
+                            }));
+                        }
+                    });
+                }
+
+                // 更新在线用户列表
+                set({
+                    onlineUsers: userIds,
+                    previousOnlineUsers: userIds
+                });
             });
 
             socket.on("friendRemoved", (data) => {
@@ -159,6 +195,15 @@ export const useAuthStore = create((set, get) => ({
             socket.on("newFriendRequest", (request) => {
                 console.log("收到新的好友请求:", request);
                 useFriendStore.getState().handleNewFriendRequest(request);
+            });
+
+            socket.on("friendRequestResponse", (data) => {
+                console.log("收到好友请求响应:", data);
+                // 当对方接受好友请求时，自动刷新好友列表
+                if (data.status === "accepted") {
+                    useFriendStore.getState().fetchFriends(true); // 强制刷新
+                }
+                useFriendStore.getState().handleFriendRequestResponse(data.requestId, data.status);
             });
 
             // 群组相关事件
@@ -206,5 +251,14 @@ export const useAuthStore = create((set, get) => ({
     },
     disconnectSocket: () => {
         if (get().socket?.connected) get().socket.disconnect();
+    },
+
+    // 移除在线好友通知
+    removeOnlineFriendNotification: (notificationId) => {
+        set((state) => ({
+            onlineFriendNotifications: state.onlineFriendNotifications.filter(
+                notif => notif.id !== notificationId
+            )
+        }));
     },
 }));

@@ -1,5 +1,6 @@
 import Navbar from "./components/Navbar";
 import BackgroundLayout from "./components/BackgroundLayout";
+import OnlineFriendNotification from "./components/OnlineFriendNotification";
 
 import HomePage from "./pages/HomePage";
 import SignUpPage from "./pages/SignUpPage";
@@ -9,7 +10,6 @@ import ProfilePage from "./pages/ProfilePage";
 import AddFriend from "./pages/AddFriend";
 import FriendRequests from "./pages/FriendRequests";
 import BotChat from "./components/BotChat";
-import AIGamesPage from "./pages/AIGamesPage";
 import GroupSettings from "./pages/GroupSettings";
 
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -21,7 +21,14 @@ import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
+  const {
+    authUser,
+    checkAuth,
+    isCheckingAuth,
+    onlineUsers,
+    onlineFriendNotifications,
+    removeOnlineFriendNotification
+  } = useAuthStore();
   const { theme } = useThemeStore();
 
   console.log({ onlineUsers });
@@ -96,13 +103,6 @@ const App = () => {
             </BackgroundLayout>
           ) : <Navigate to="/login" />
         } />
-        <Route path="/ai-games" element={
-          authUser ? (
-            <BackgroundLayout>
-              <AIGamesPage />
-            </BackgroundLayout>
-          ) : <Navigate to="/login" />
-        } />
         <Route path="/groups/:groupId/settings" element={
           authUser ? (
             <BackgroundLayout>
@@ -113,6 +113,26 @@ const App = () => {
       </Routes>
 
       <Toaster />
+
+      {/* 在线好友通知 */}
+      {authUser && onlineFriendNotifications.length > 0 && (
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col-reverse">
+          {onlineFriendNotifications.map((notification, index) => (
+            <div
+              key={notification.id}
+              className="transition-all duration-300"
+              style={{
+                marginTop: index > 0 ? '-1px' : '0px',
+              }}
+            >
+              <OnlineFriendNotification
+                friendName={notification.friendName}
+                onClose={() => removeOnlineFriendNotification(notification.id)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -5,20 +5,25 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
 import path from "path";
+import { fileURLToPath } from "url";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import friendRoutes from "./routes/friend.routes.js";
 import botRoutes from "./routes/bot.js";
-import gamesRoutes from "./routes/games.js";
 import groupRoutes from "./routes/group.route.js";
 import groupMessageRoutes from "./routes/groupMessage.route.js";
 import { initSocket } from "./lib/socket.js";
 
-dotenv.config();
+// 获取当前文件的目录路径
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const PORT = process.env.PORT || 3000;
-const MONGO_URI = process.env.MONGO_URI;
-const __dirname = path.resolve();
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
+const PORT = process.env.PORT || 5001;
+let MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/chat_db";
+
+console.log("📝 Port:", PORT);
 const app = express();
 const server = createServer(app);
 
@@ -31,20 +36,26 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // 中间件
+// CORS 配置：开发环境允许前端访问，生产环境允许所有来源
+const isDevelopment = process.env.NODE_ENV !== "production";
 app.use(
     cors({
-        origin: process.env.NODE_ENV === "development" ? "http://localhost:5173" : true,
+        origin: isDevelopment ? "http://localhost:5173" : true,
         credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
     })
 );
 app.use(cookieParser());
+
+// 处理 OPTIONS 预检请求
+app.options('*', cors());
 
 // 路由
 app.use("/auth", authRoutes);
 app.use("/messages", messageRoutes);
 app.use("/friends", friendRoutes);
 app.use("/bot", botRoutes);
-app.use("/api/games", gamesRoutes);
 app.use("/groups", groupRoutes);
 app.use("/group-messages", groupMessageRoutes);
 

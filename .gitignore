@@ -61,3 +61,4 @@ backend/uploads/
 .env.test.local
 .env.production.local 
 
+ecosystem.config.js
